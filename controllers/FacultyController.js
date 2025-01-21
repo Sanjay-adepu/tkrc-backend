@@ -2,7 +2,7 @@ const Faculty = require("../models/facultymodel");
 const bcrypt = require("bcryptjs");
 const path = require("path");
     
-const addFaculty = async (req, res) => {
+const addFaculty = async (req, res) => {  
   try {
     const { name, facultyId, role, department, password, timetable } = req.body;
 
