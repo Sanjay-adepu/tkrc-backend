@@ -45,32 +45,32 @@ const addFaculty = async (req, res) => {
   }
 };
 
-const getUniqueCombinationsFor7Days = async (req, res) => {
+const getFacultyUniqueCombinationsFor7Days = async (req, res) => {
   try {
+    const { facultyId } = req.params; // Retrieve facultyId from the request URL
+
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - 6); // 7 days range, including today
     const endDate = new Date();
 
-    // Fetch all faculty data
-    const facultyList = await Faculty.find();
+    // Fetch faculty data by facultyId
+    const faculty = await Faculty.findOne({ facultyId });
 
-    if (!facultyList || facultyList.length === 0) {
-      return res.status(404).json({ message: "No faculty records found" });
+    if (!faculty) {
+      return res.status(404).json({ message: "Faculty not found" });
     }
 
     const uniqueCombinations = new Set();
 
-    facultyList.forEach((faculty) => {
-      faculty.timetable.forEach((entry) => {
-        const entryDate = new Date(entry.date);
-        // Check if the entry date falls within the past 7 days
-        if (entryDate >= startDate && entryDate <= endDate) {
-          entry.periods.forEach((period) => {
-            const combination = `${period.year}-${period.department}-${period.section}-${period.subject}`;
-            uniqueCombinations.add(combination);
-          });
-        }
-      });
+    faculty.timetable.forEach((entry) => {
+      const entryDate = new Date(entry.date);
+      // Check if the entry date falls within the past 7 days
+      if (entryDate >= startDate && entryDate <= endDate) {
+        entry.periods.forEach((period) => {
+          const combination = `${period.year}-${period.department}-${period.section}-${period.subject}`;
+          uniqueCombinations.add(combination);
+        });
+      }
     });
 
     // Convert the Set to an array for response
@@ -81,15 +81,13 @@ const getUniqueCombinationsFor7Days = async (req, res) => {
 
     res.status(200).json({ uniqueCombinations: result });
   } catch (error) {
-    console.error("Error fetching unique combinations:", error.message);
+    console.error("Error fetching faculty unique combinations:", error.message);
     res.status(500).json({
       message: "Error fetching unique combinations",
       error: error.message,
     });
   }
 };
-
- 
 
 const getCurrentDay = () => {
   const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
