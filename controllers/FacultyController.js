@@ -89,7 +89,7 @@ const getUniqueCombinationsFor7Days = async (req, res) => {
   }
 };
 
-
+ 
 
 const getCurrentDay = () => {
   const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
