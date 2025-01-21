@@ -3,7 +3,8 @@ const {
   markAttendance,
   fetchAttendance,
   checkAttendance,
-   fetchAttendanceByDate
+   fetchAttendanceByDate,
+   fetchAttendanceByFilters
 } = require("../controllers/AttendanceController");
 
 const router = express.Router();
@@ -28,5 +29,6 @@ router.get("/date",fetchAttendanceByDate)
  * @access  Public
  */
 router.get("/check", checkAttendance);
+router.get("/filters", fetchAttendanceByFilters);
 
 module.exports = router;
