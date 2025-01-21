@@ -149,10 +149,42 @@ const checkAttendance = async (req, res) => {
     });
   }
 };
+
+// Fetch Attendance Records for All Dates by Filters
+const fetchAttendanceByFilters = async (req, res) => {
+  try {
+    const { year, department, section, subject } = req.query;
+
+    // Validate required fields
+    if (!year || !department || !section || !subject) {
+      return res.status(400).json({ message: "Year, department, section, and subject are required" });
+    }
+
+    // Fetch attendance records
+    const attendanceRecords = await Attendance.find({ year, department, section, subject });
+
+    if (!attendanceRecords.length) {
+      return res.status(404).json({ message: "No attendance records found for the given filters" });
+    }
+
+    res.status(200).json({
+      message: "Attendance records fetched successfully for the given filters",
+      data: attendanceRecords,
+    });
+  } catch (error) {
+    console.error("Error fetching attendance records by filters:", error.message || error);
+    res.status(500).json({
+      message: "An error occurred while fetching attendance records by filters",
+      error: error.message || error,
+    });
+  }
+};
+
 module.exports = {
   markAttendance,
   fetchAttendance,
   fetchAttendanceByDate,
   checkAttendance,
+  fetchAttendanceByFilters
 };
          
