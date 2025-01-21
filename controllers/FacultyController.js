@@ -83,6 +83,7 @@ const getFacultyUniqueCombinationsFor7Days = async (req, res) => {
   }
 };
 
+
 const getCurrentDay = () => {
   const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
   const currentDate = new Date();
@@ -110,18 +111,23 @@ const getTodayTimetableByFacultyId = async (req, res) => {
       return res.status(200).json({ classes: [], message: "No classes today" });
     }
 
-    // Filter out empty periods and format the response
-    const classes = todayTimetable.periods
-      .filter((period) => period.subject && period.subject.trim() !== "") // Ignore empty periods
-      .map((period) => ({
-        programYear: `B.Tech ${period.year}`,
-        department: period.department,
-        section: period.section,
-        subject: period.subject,
-      }));
+    // Process periods: Ignore empty periods but ensure correct sequence
+    let filteredClasses = [];
+    for (let i = 0; i < todayTimetable.periods.length; i++) {
+      if (todayTimetable.periods[i].subject && todayTimetable.periods[i].subject.trim() !== "") {
+        filteredClasses.push({
+          programYear: `B.Tech ${todayTimetable.periods[i].year}`,
+          department: todayTimetable.periods[i].department,
+          section: todayTimetable.periods[i].section,
+          subject: todayTimetable.periods[i].subject,
+        });
+      }
+    }
 
-    // Return the formatted timetable
-    return res.status(200).json({ classes, message: classes.length ? undefined : "No valid classes today" });
+    return res.status(200).json({
+      classes: filteredClasses,
+      message: filteredClasses.length ? undefined : "No valid classes today",
+    });
   } catch (error) {
     console.error("Error fetching today's timetable:", error.message);
     return res.status(500).json({
