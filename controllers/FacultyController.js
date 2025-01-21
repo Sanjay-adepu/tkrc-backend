@@ -47,11 +47,7 @@ const addFaculty = async (req, res) => {
 
 const getFacultyUniqueCombinationsFor7Days = async (req, res) => {
   try {
-    const { facultyId } = req.params; // Retrieve facultyId from the request URL
-
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - 6); // 7 days range, including today
-    const endDate = new Date();
+    const { facultyId } = req.params;
 
     // Fetch faculty data by facultyId
     const faculty = await Faculty.findOne({ facultyId });
@@ -60,20 +56,18 @@ const getFacultyUniqueCombinationsFor7Days = async (req, res) => {
       return res.status(404).json({ message: "Faculty not found" });
     }
 
+    // Use a Set to store unique combinations
     const uniqueCombinations = new Set();
 
+    // Iterate over the timetable
     faculty.timetable.forEach((entry) => {
-      const entryDate = new Date(entry.date);
-      // Check if the entry date falls within the past 7 days
-      if (entryDate >= startDate && entryDate <= endDate) {
-        entry.periods.forEach((period) => {
-          const combination = `${period.year}-${period.department}-${period.section}-${period.subject}`;
-          uniqueCombinations.add(combination);
-        });
-      }
+      entry.periods.forEach((period) => {
+        const combination = `${period.year}-${period.department}-${period.section}-${period.subject}`;
+        uniqueCombinations.add(combination);
+      });
     });
 
-    // Convert the Set to an array for response
+    // Convert Set to Array and format the result
     const result = Array.from(uniqueCombinations).map((combination) => {
       const [year, department, section, subject] = combination.split("-");
       return { year, department, section, subject };
@@ -81,7 +75,7 @@ const getFacultyUniqueCombinationsFor7Days = async (req, res) => {
 
     res.status(200).json({ uniqueCombinations: result });
   } catch (error) {
-    console.error("Error fetching faculty unique combinations:", error.message);
+    console.error("Error fetching unique combinations:", error.message);
     res.status(500).json({
       message: "Error fetching unique combinations",
       error: error.message,
