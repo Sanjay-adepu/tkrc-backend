@@ -43,7 +43,7 @@ router.put("/:id/timetable", updateFacultyTimetable);
 router.post("/login", loginFaculty);
 router.get(
   "/faculty/:facultyId/unique-combinations-7days",
-  facultyController.getFacultyUniqueCombinationsFor7Days
+getFacultyUniqueCombinationsFor7Days
 );
 
 
