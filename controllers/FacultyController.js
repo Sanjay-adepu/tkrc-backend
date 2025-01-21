@@ -350,6 +350,6 @@ module.exports = {
   getFacultyTimetable,
   updateFacultyTimetable,
   loginFaculty,
-    getUniqueCombinationsFor7Days,
+    getFacultyUniqueCombinationsFor7Days,
  getTodayTimetableByFacultyId
 };
