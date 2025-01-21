@@ -45,6 +45,49 @@ const addFaculty = async (req, res) => {
   }
 };
 
+const getUniqueCombinationsFor7Days = async (req, res) => {
+  try {
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - 6); // 7 days range, including today
+    const endDate = new Date();
+
+    // Fetch all faculty data
+    const facultyList = await Faculty.find();
+
+    if (!facultyList || facultyList.length === 0) {
+      return res.status(404).json({ message: "No faculty records found" });
+    }
+
+    const uniqueCombinations = new Set();
+
+    facultyList.forEach((faculty) => {
+      faculty.timetable.forEach((entry) => {
+        const entryDate = new Date(entry.date);
+        // Check if the entry date falls within the past 7 days
+        if (entryDate >= startDate && entryDate <= endDate) {
+          entry.periods.forEach((period) => {
+            const combination = `${period.year}-${period.department}-${period.section}-${period.subject}`;
+            uniqueCombinations.add(combination);
+          });
+        }
+      });
+    });
+
+    // Convert the Set to an array for response
+    const result = Array.from(uniqueCombinations).map((combination) => {
+      const [year, department, section, subject] = combination.split("-");
+      return { year, department, section, subject };
+    });
+
+    res.status(200).json({ uniqueCombinations: result });
+  } catch (error) {
+    console.error("Error fetching unique combinations:", error.message);
+    res.status(500).json({
+      message: "Error fetching unique combinations",
+      error: error.message,
+    });
+  }
+};
 
 
 
@@ -309,5 +352,6 @@ module.exports = {
   getFacultyTimetable,
   updateFacultyTimetable,
   loginFaculty,
+    getUniqueCombinationsFor7Days,
  getTodayTimetableByFacultyId
 };
