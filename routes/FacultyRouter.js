@@ -42,7 +42,7 @@ router.get("/:id/timetable", getFacultyTimetable);
 router.put("/:id/timetable", updateFacultyTimetable);
 router.post("/login", loginFaculty);
 router.get(
-  "/faculty/:facultyId/unique-combinations-7days",
+  "/:facultyId/unique",
 getFacultyUniqueCombinationsFor7Days
 );
 
