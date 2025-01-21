@@ -106,20 +106,22 @@ const getTodayTimetableByFacultyId = async (req, res) => {
     // Find today's timetable
     const todayTimetable = faculty.timetable.find((entry) => entry.day === currentDay);
 
-    if (!todayTimetable || todayTimetable.periods.length === 0) {
+    if (!todayTimetable || !todayTimetable.periods.length) {
       return res.status(200).json({ classes: [], message: "No classes today" });
     }
 
-    // Format the response for the frontend
-    const classes = todayTimetable.periods.map((period) => ({
-      programYear: `B.Tech ${period.year}`, // Add "B.Tech" prefix to year
-      department: period.department,
-      section: period.section,
-      subject: period.subject,
-    }));
+    // Filter out empty periods and format the response
+    const classes = todayTimetable.periods
+      .filter((period) => period.subject && period.subject.trim() !== "") // Ignore empty periods
+      .map((period) => ({
+        programYear: `B.Tech ${period.year}`,
+        department: period.department,
+        section: period.section,
+        subject: period.subject,
+      }));
 
     // Return the formatted timetable
-    return res.status(200).json({ classes });
+    return res.status(200).json({ classes, message: classes.length ? undefined : "No valid classes today" });
   } catch (error) {
     console.error("Error fetching today's timetable:", error.message);
     return res.status(500).json({
@@ -128,7 +130,6 @@ const getTodayTimetableByFacultyId = async (req, res) => {
     });
   }
 };
-
 
 
 // Update faculty (with image upload)
