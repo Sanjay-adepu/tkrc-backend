@@ -3,7 +3,7 @@ const Attendance = require("../models/studentAttendance");
 // Mark Attendance 
 const markAttendance = async (req, res) => {
   try {
-    const { date, periods, subject, topic, remarks, year, department, section, attendance } = req.body;
+    const { date, periods, subject, topic, remarks, year, department, section, attendance, editing } = req.body;
 
     // Validate periods
     if (!Array.isArray(periods) || periods.some((p) => typeof p !== "number" || p === null || p === undefined)) {
@@ -19,6 +19,30 @@ const markAttendance = async (req, res) => {
       }
       return { rollNumber, name, status: status.toLowerCase() };
     });
+
+    // Fetch all marked periods for the given date, year, department, and section
+    const markedPeriods = await Attendance.find({ date, year, department, section }).select("period");
+
+    // Extract periods that are already marked
+    const markedPeriodNumbers = markedPeriods.map((record) => record.period);
+
+    // If editing, ensure the provided periods are valid and already marked
+    if (editing) {
+      const invalidPeriods = periods.filter((p) => !markedPeriodNumbers.includes(p));
+      if (invalidPeriods.length > 0) {
+        return res.status(400).json({
+          message: `Invalid periods provided for editing: ${invalidPeriods.join(", ")}`,
+        });
+      }
+    } else {
+      // For new marking, ensure no period is already marked
+      const duplicatePeriods = periods.filter((p) => markedPeriodNumbers.includes(p));
+      if (duplicatePeriods.length > 0) {
+        return res.status(400).json({
+          message: `Periods already marked: ${duplicatePeriods.join(", ")}`,
+        });
+      }
+    }
 
     // Process attendance for each period
     const attendanceResponses = [];
@@ -54,6 +78,7 @@ const markAttendance = async (req, res) => {
     res.status(201).json({
       message: "Attendance marked successfully for all selected periods!",
       records: attendanceResponses,
+      markedPeriods: markedPeriodNumbers, // Return marked periods for client-side validation
     });
   } catch (error) {
     console.error("Error marking attendance:", error.message || error);
@@ -63,6 +88,9 @@ const markAttendance = async (req, res) => {
     });
   }
 };
+
+
+
 
 // Fetch Attendance Records by Date
 const fetchAttendanceByDate = async (req, res) => {
