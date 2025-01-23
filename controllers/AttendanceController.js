@@ -208,11 +208,93 @@ const fetchAttendanceByFilters = async (req, res) => {
   }
 };
 
+// Fetch Attendance by Subject and Periods
+const fetchAttendanceBySubject = async (req, res) => {
+  try {
+    const { year, department, section, subject } = req.query;
+
+    if (!year || !department || !section || !subject) {
+      return res.status(400).json({ message: "Year, department, section, and subject are required" });
+    }
+
+    // Fetch attendance records only for the selected subject
+    const attendanceRecords = await Attendance.find({ year, department, section, subject });
+
+    if (!attendanceRecords.length) {
+      return res.status(404).json({ message: "No attendance records found for the given subject" });
+    }
+
+    // Structure data in table format
+    const tableData = {};
+    const studentAttendance = {};
+
+    attendanceRecords.forEach((record) => {
+      const { date, period, attendance } = record;
+
+      if (!tableData[date]) {
+        tableData[date] = { periods: [], students: {} };
+      }
+
+      tableData[date].periods.push(period);
+
+      attendance.forEach(({ rollNumber, status }) => {
+        if (!tableData[date].students[rollNumber]) {
+          tableData[date].students[rollNumber] = [];
+        }
+        tableData[date].students[rollNumber].push(status === "present" ? "P" : "A");
+
+        // Initialize student attendance tracking
+        if (!studentAttendance[rollNumber]) {
+          studentAttendance[rollNumber] = { total: 0, attended: 0 };
+        }
+
+        studentAttendance[rollNumber].total += 1;
+        if (status === "present") {
+          studentAttendance[rollNumber].attended += 1;
+        }
+      });
+    });
+
+    // Format response
+    const formattedResponse = Object.entries(tableData).map(([date, { periods, students }]) => ({
+      date,
+      periods,
+      students: Object.entries(students).map(([rollNumber, statuses]) => ({
+        rollNumber,
+        statuses,
+      })),
+    }));
+
+    // Calculate percentages
+    const studentPercentage = Object.entries(studentAttendance).map(([rollNumber, { total, attended }]) => ({
+      rollNumber,
+      total,
+      attended,
+      percentage: total > 0 ? ((attended / total) * 100).toFixed(2) : "0.00",
+    }));
+
+    res.status(200).json({
+      message: "Attendance records fetched successfully for the selected subject",
+      data: formattedResponse,
+      percentageData: studentPercentage,
+    });
+  } catch (error) {
+    console.error("Error fetching attendance by subject:", error.message || error);
+    res.status(500).json({
+      message: "An error occurred while fetching attendance by subject",
+      error: error.message || error,
+    });
+  }
+};
+
+
+
 module.exports = {
   markAttendance,
   fetchAttendance,
   fetchAttendanceByDate,
   checkAttendance,
+  fetchAttendanceBySubject,
   fetchAttendanceByFilters
 };
          
