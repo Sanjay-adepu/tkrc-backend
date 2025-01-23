@@ -243,7 +243,7 @@ const fetchAttendanceBySubject = async (req, res) => {
         }
         tableData[date].students[rollNumber].push(status === "present" ? "P" : "A");
 
-        // Initialize student attendance tracking
+        // Track student attendance
         if (!studentAttendance[rollNumber]) {
           studentAttendance[rollNumber] = { total: 0, attended: 0 };
         }
@@ -259,10 +259,7 @@ const fetchAttendanceBySubject = async (req, res) => {
     const formattedResponse = Object.entries(tableData).map(([date, { periods, students }]) => ({
       date,
       periods,
-      students: Object.entries(students).map(([rollNumber, statuses]) => ({
-        rollNumber,
-        statuses,
-      })),
+      students: Object.fromEntries(Object.entries(students).map(([rollNumber, statuses]) => [rollNumber, statuses])),
     }));
 
     // Calculate percentages
@@ -286,8 +283,6 @@ const fetchAttendanceBySubject = async (req, res) => {
     });
   }
 };
-
-
 
 module.exports = {
   markAttendance,
