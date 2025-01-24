@@ -157,17 +157,20 @@ const checkAttendance = async (req, res) => {
       return res.status(400).json({ message: "Date, year, department, and section are required" });
     }
 
-    // Fetch attendance records for the specific date, year, department, and section
+    // Fetch attendance records for the given date, year, department, and section
     const attendanceRecords = await Attendance.find({ date, year, department, section });
 
-    // Extract and store marked periods, ensuring no null periods
-    const markedPeriods = attendanceRecords
-      .map((record) => record.period)
-      .filter((period) => period !== null && period !== undefined); // Remove null or undefined periods
+    if (!attendanceRecords.length) {
+      return res.status(404).json({ message: "No attendance records found for the given filters" });
+    }
+
+    // Extract marked periods and attendance details
+    const markedPeriods = attendanceRecords.map((record) => record.period).filter(Boolean); // Ensure no null/undefined periods
 
     res.status(200).json({
-      message: "Checked existing attendance records successfully",
-      periods: [...new Set(markedPeriods)], // Return unique periods
+      message: "Attendance records and marked periods fetched successfully",
+      periods: [...new Set(markedPeriods)], // Unique periods
+      records: attendanceRecords, // Include full attendance records
     });
   } catch (error) {
     console.error("Error checking attendance:", error.message || error);
@@ -177,6 +180,7 @@ const checkAttendance = async (req, res) => {
     });
   }
 };
+
 
 // Fetch Attendance Records for All Dates by Filters
 const fetchAttendanceByFilters = async (req, res) => {
