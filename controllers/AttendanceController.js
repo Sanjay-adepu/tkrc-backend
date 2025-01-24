@@ -151,14 +151,20 @@ const fetchAttendance = async (req, res) => {
 // Check Existing Attendance and Disable Marked Periods
 const checkAttendance = async (req, res) => {
   try {
-    const { date, year, department, section } = req.query;
+    const { date, year, department, section, period } = req.query;
 
     if (!date || !year || !department || !section) {
       return res.status(400).json({ message: "Date, year, department, and section are required" });
     }
 
-    // Fetch attendance records for the given date, year, department, and section
-    const attendanceRecords = await Attendance.find({ date, year, department, section });
+    // If period is provided, fetch only that period's data
+    const query = { date, year, department, section };
+    if (period) {
+      query.period = period; // Filter by period if specified
+    }
+
+    // Fetch attendance record(s) for the given query
+    const attendanceRecords = await Attendance.find(query);
 
     if (!attendanceRecords.length) {
       return res.status(404).json({ message: "No attendance records found for the given filters" });
