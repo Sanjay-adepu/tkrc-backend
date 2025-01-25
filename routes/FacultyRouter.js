@@ -48,7 +48,7 @@ getFacultyUniqueCombinationsFor7Days
 );
 // New route to get periods for a subject
 router.get(
-  "/:facultyId/:department/:section/:subject",
+  "/:facultyId/:year/:department/:section/:subject",
   getPeriodsForSubject
 );
 
