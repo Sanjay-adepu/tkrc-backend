@@ -25,7 +25,7 @@ getTodayTimetableByFacultyId,
   deleteFaculty,
   getFacultyTimetable,
   updateFacultyTimetable,
- getPeriodsForSubject,
+ getExactPeriodsForSubject,
  getFacultyUniqueCombinationsFor7Days,
   loginFaculty,
 } = require("../controllers/FacultyController");
@@ -49,7 +49,7 @@ getFacultyUniqueCombinationsFor7Days
 // New route to get periods for a subject
 router.get(
   "/:facultyId/:year/:department/:section/:subject",
-  getPeriodsForSubject
+  getExactPeriodsForSubject
 );
 
 
