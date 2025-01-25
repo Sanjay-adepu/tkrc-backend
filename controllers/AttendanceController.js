@@ -1,6 +1,6 @@
 const Attendance = require("../models/studentAttendance");
-  
-// Mark Attendance 
+
+// Mark Attendance or Edit Attendance
 const markAttendance = async (req, res) => {
   try {
     const { date, periods, subject, topic, remarks, year, department, section, attendance, editing } = req.body;
@@ -10,37 +10,32 @@ const markAttendance = async (req, res) => {
       return res.status(400).json({ message: "Periods must be an array of valid numbers" });
     }
 
+    // Format attendance
     const formattedAttendance = attendance.map(({ rollNumber, name, status }) => {
       if (!rollNumber || !name || !status) {
-        throw new Error("Each attendance entry must include rollNumber, name, and status");
+        throw new Error("Each attendance entry must include rollNumber, name, and status.");
       }
       if (!["present", "absent"].includes(status.toLowerCase())) {
-        throw new Error(`Invalid status for rollNumber ${rollNumber}. Status must be 'present' or 'absent'.`);
+        throw new Error(`Invalid status for rollNumber ${rollNumber}. Must be 'present' or 'absent'.`);
       }
       return { rollNumber, name, status: status.toLowerCase() };
     });
 
-    // Fetch all marked periods for the given date, year, department, and section
+    // Fetch marked periods for the given date, year, department, and section
     const markedPeriods = await Attendance.find({ date, year, department, section }).select("period");
-
-    // Extract periods that are already marked
     const markedPeriodNumbers = markedPeriods.map((record) => record.period);
 
-    // If editing, ensure the provided periods are valid and already marked
     if (editing) {
+      // Ensure all provided periods exist for editing
       const invalidPeriods = periods.filter((p) => !markedPeriodNumbers.includes(p));
       if (invalidPeriods.length > 0) {
-        return res.status(400).json({
-          message: `Invalid periods provided for editing: ${invalidPeriods.join(", ")}`,
-        });
+        return res.status(400).json({ message: `Invalid periods provided for editing: ${invalidPeriods.join(", ")}` });
       }
     } else {
-      // For new marking, ensure no period is already marked
+      // Prevent marking attendance for already marked periods
       const duplicatePeriods = periods.filter((p) => markedPeriodNumbers.includes(p));
       if (duplicatePeriods.length > 0) {
-        return res.status(400).json({
-          message: `Periods already marked: ${duplicatePeriods.join(", ")}`,
-        });
+        return res.status(400).json({ message: `Periods already marked: ${duplicatePeriods.join(", ")}` });
       }
     }
 
@@ -50,6 +45,7 @@ const markAttendance = async (req, res) => {
       const existingAttendance = await Attendance.findOne({ date, period, year, department, section });
 
       if (existingAttendance) {
+        // Update existing attendance
         existingAttendance.subject = subject;
         existingAttendance.topic = topic;
         existingAttendance.remarks = remarks;
@@ -58,6 +54,7 @@ const markAttendance = async (req, res) => {
         const updatedAttendance = await existingAttendance.save();
         attendanceResponses.push({ period, record: updatedAttendance, status: "updated" });
       } else {
+        // Create new attendance
         const newAttendance = new Attendance({
           date,
           period,
@@ -76,18 +73,20 @@ const markAttendance = async (req, res) => {
     }
 
     res.status(201).json({
-      message: "Attendance marked successfully for all selected periods!",
+      message: "Attendance processed successfully for all selected periods!",
       records: attendanceResponses,
       markedPeriods: markedPeriodNumbers, // Return marked periods for client-side validation
     });
   } catch (error) {
-    console.error("Error marking attendance:", error.message || error);
+    console.error("Error processing attendance:", error.message || error);
     res.status(500).json({
-      message: "An error occurred while marking attendance",
+      message: "An error occurred while processing attendance",
       error: error.message || error,
     });
   }
 };
+
+
 
 
 
