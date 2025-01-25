@@ -338,7 +338,9 @@ const updateFacultyTimetable = async (req, res) => {
   }
 };
 
-const getPeriodsForSubject = async (req, res) => {
+
+
+const getExactPeriodsForSubject = async (req, res) => {
   try {
     const { facultyId, department, section, subject, year } = req.params;
 
@@ -354,8 +356,11 @@ const getPeriodsForSubject = async (req, res) => {
       return res.status(404).json({ message: "Faculty not found" });
     }
 
+    console.log("Faculty found:", faculty.name);  // Log faculty details
+
     // Get the current day
     const currentDay = getCurrentDay();
+    console.log("Current Day:", currentDay); // Log the current day
 
     // Find today's timetable entry
     const todayTimetable = faculty.timetable.find((entry) => entry.day === currentDay);
@@ -363,6 +368,9 @@ const getPeriodsForSubject = async (req, res) => {
     if (!todayTimetable || !todayTimetable.periods.length) {
       return res.status(200).json({ periods: [], message: "No classes scheduled today" });
     }
+
+    // Log the timetable for today
+    console.log("Today's Timetable:", todayTimetable);
 
     // Filter periods for the specified department, section, subject, and year
     const matchedPeriods = todayTimetable.periods
@@ -374,6 +382,8 @@ const getPeriodsForSubject = async (req, res) => {
           period.year === year
       )
       .map((period) => period.period); // Return the exact periods (not just numbers)
+
+    console.log("Matched Periods:", matchedPeriods); // Log matched periods
 
     res.status(200).json({
       periods: matchedPeriods,
@@ -389,6 +399,7 @@ const getPeriodsForSubject = async (req, res) => {
     });
   }
 };
+
 module.exports = {
   
   addFaculty,
@@ -400,6 +411,6 @@ module.exports = {
   updateFacultyTimetable,
   loginFaculty,
     getFacultyUniqueCombinationsFor7Days,
-    getPeriodsForSubject,
+    getExactPeriodsForSubject,
  getTodayTimetableByFacultyId
 };
