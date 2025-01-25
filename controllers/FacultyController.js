@@ -340,10 +340,10 @@ const updateFacultyTimetable = async (req, res) => {
 
 const getPeriodsForSubject = async (req, res) => {
   try {
-    const { facultyId, department, section, subject } = req.params;
+    const { facultyId, department, section, subject, year } = req.params;
 
     // Validate required parameters
-    if (!facultyId || !department || !section || !subject) {
+    if (!facultyId || !department || !section || !subject || !year) {
       return res.status(400).json({ message: "All parameters are required" });
     }
 
@@ -364,15 +364,16 @@ const getPeriodsForSubject = async (req, res) => {
       return res.status(200).json({ periods: [], message: "No classes scheduled today" });
     }
 
-    // Filter periods for the specified department, section, and subject
+    // Filter periods for the specified department, section, subject, and year
     const matchedPeriods = todayTimetable.periods
       .filter(
         (period) =>
           period.department === department &&
           period.section === section &&
-          period.subject === subject
+          period.subject === subject &&
+          period.year === year
       )
-      .map((period, index) => index + 1); // Get the period numbers (1-based index)
+      .map((period) => period.period); // Return the exact periods (not just numbers)
 
     res.status(200).json({
       periods: matchedPeriods,
@@ -388,7 +389,6 @@ const getPeriodsForSubject = async (req, res) => {
     });
   }
 };
-
 module.exports = {
   
   addFaculty,
