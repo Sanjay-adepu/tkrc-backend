@@ -336,9 +336,57 @@ const updateFacultyTimetable = async (req, res) => {
     console.error("Error in updateFacultyTimetable:", error.message);
     res.status(500).json({ message: "Error updating timetable", error: error.message });
   }
+};
 
+const getPeriodsForSubject = async (req, res) => {
+  try {
+    const { facultyId, department, section, subject } = req.params;
 
+    // Validate required parameters
+    if (!facultyId || !department || !section || !subject) {
+      return res.status(400).json({ message: "All parameters are required" });
+    }
 
+    // Fetch the faculty's timetable
+    const faculty = await Faculty.findOne({ facultyId });
+
+    if (!faculty) {
+      return res.status(404).json({ message: "Faculty not found" });
+    }
+
+    // Get the current day
+    const currentDay = getCurrentDay();
+
+    // Find today's timetable entry
+    const todayTimetable = faculty.timetable.find((entry) => entry.day === currentDay);
+
+    if (!todayTimetable || !todayTimetable.periods.length) {
+      return res.status(200).json({ periods: [], message: "No classes scheduled today" });
+    }
+
+    // Filter periods for the specified department, section, and subject
+    const matchedPeriods = todayTimetable.periods
+      .filter(
+        (period) =>
+          period.department === department &&
+          period.section === section &&
+          period.subject === subject
+      )
+      .map((period, index) => index + 1); // Get the period numbers (1-based index)
+
+    res.status(200).json({
+      periods: matchedPeriods,
+      message: matchedPeriods.length
+        ? undefined
+        : "No periods found for the specified subject today",
+    });
+  } catch (error) {
+    console.error("Error fetching periods for subject:", error.message);
+    res.status(500).json({
+      message: "Error fetching periods for subject",
+      error: error.message,
+    });
+  }
 };
 
 module.exports = {
@@ -352,5 +400,6 @@ module.exports = {
   updateFacultyTimetable,
   loginFaculty,
     getFacultyUniqueCombinationsFor7Days,
+    getPeriodsForSubject,
  getTodayTimetableByFacultyId
 };
