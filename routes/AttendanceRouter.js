@@ -5,6 +5,7 @@ const {
   checkAttendance,
    fetchAttendanceByDate,
   fetchAttendanceBySubject,
+  getMarkedSubjects,
    fetchAttendanceByFilters
 } = require("../controllers/AttendanceController");
 
@@ -33,5 +34,5 @@ router.get("/check", checkAttendance);
 router.get("/filters", fetchAttendanceByFilters);
 // Route to fetch attendance by subject and periods
 router.get("/fetch-records", fetchAttendanceBySubject);
-  
+router.get("/marked-subjects", getMarkedSubjects);
 module.exports = router;
