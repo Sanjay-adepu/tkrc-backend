@@ -294,6 +294,7 @@ const fetchAttendanceBySubject = async (req, res) => {
 };
 
 // Fetch Already Marked Subjects for a Given Date, Year, Department, and Section
+// Fetch Marked Subjects for Each Period
 const getMarkedSubjects = async (req, res) => {
   try {
     const { date, year, department, section } = req.query;
@@ -302,21 +303,27 @@ const getMarkedSubjects = async (req, res) => {
       return res.status(400).json({ message: "Date, year, department, and section are required" });
     }
 
-    // Fetch distinct subjects for the given filters
-    const markedSubjects = await Attendance.find({ date, year, department, section }).distinct("subject");
+    // Fetch attendance records for the given filters
+    const attendanceRecords = await Attendance.find({ date, year, department, section }).select("period subject");
 
-    if (!markedSubjects.length) {
-      return res.status(404).json({ message: "No subjects marked for the given filters" });
+    if (!attendanceRecords.length) {
+      return res.status(404).json({ message: "No attendance records found for the given filters" });
     }
 
+    // Map periods to their subjects
+    const markedSubjects = attendanceRecords.map(({ period, subject }) => ({
+      period,
+      subject,
+    }));
+
     res.status(200).json({
-      message: "Marked subjects fetched successfully",
+      message: "Marked subjects fetched successfully for each period",
       data: markedSubjects,
     });
   } catch (error) {
-    console.error("Error fetching marked subjects:", error.message || error);
+    console.error("Error fetching marked subjects by periods:", error.message || error);
     res.status(500).json({
-      message: "An error occurred while fetching marked subjects",
+      message: "An error occurred while fetching marked subjects by periods",
       error: error.message || error,
     });
   }
