@@ -293,12 +293,42 @@ const fetchAttendanceBySubject = async (req, res) => {
   }
 };
 
+// Fetch Already Marked Subjects for a Given Date, Year, Department, and Section
+const getMarkedSubjects = async (req, res) => {
+  try {
+    const { date, year, department, section } = req.query;
+
+    if (!date || !year || !department || !section) {
+      return res.status(400).json({ message: "Date, year, department, and section are required" });
+    }
+
+    // Fetch distinct subjects for the given filters
+    const markedSubjects = await Attendance.find({ date, year, department, section }).distinct("subject");
+
+    if (!markedSubjects.length) {
+      return res.status(404).json({ message: "No subjects marked for the given filters" });
+    }
+
+    res.status(200).json({
+      message: "Marked subjects fetched successfully",
+      data: markedSubjects,
+    });
+  } catch (error) {
+    console.error("Error fetching marked subjects:", error.message || error);
+    res.status(500).json({
+      message: "An error occurred while fetching marked subjects",
+      error: error.message || error,
+    });
+  }
+};
+
 module.exports = {
   markAttendance,
   fetchAttendance,
   fetchAttendanceByDate,
   checkAttendance,
   fetchAttendanceBySubject,
+  getMarkedSubjects,
   fetchAttendanceByFilters
 };
          
