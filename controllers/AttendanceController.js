@@ -1,5 +1,5 @@
 const Attendance = require("../models/studentAttendance");
- const Year = require("../models/Year");
+ const Year = require("../models/studentSection");
 // Mark Attendance or Edit Attendance
 const markAttendance = async (req, res) => {
   try {
