@@ -329,6 +329,77 @@ const getMarkedSubjects = async (req, res) => {
   }
 };
 
+
+const getStudentAttendance = async (req, res) => {
+  try {
+    const { rollNumber, year, department, section } = req.query;
+
+    if (!rollNumber || !year || !department || !section) {
+      return res.status(400).json({ message: "Roll number, year, department, and section are required" });
+    }
+
+    // Find all attendance records for the student
+    const attendanceRecords = await Attendance.find({
+      year,
+      department,
+      section,
+      "attendance.rollNumber": rollNumber,
+    });
+
+    if (!attendanceRecords.length) {
+      return res.status(404).json({ message: "No attendance records found for the given student" });
+    }
+
+    // Calculate subject-wise and daily attendance
+    const subjectSummary = {};
+    const dailySummary = {};
+
+    attendanceRecords.forEach((record) => {
+      const { date, period, subject, attendance } = record;
+      const studentAttendance = attendance.find((att) => att.rollNumber === rollNumber);
+
+      // Subject-wise summary
+      if (!subjectSummary[subject]) {
+        subjectSummary[subject] = { classesConducted: 0, classesAttended: 0 };
+      }
+      subjectSummary[subject].classesConducted += 1;
+      if (studentAttendance.status === "present") {
+        subjectSummary[subject].classesAttended += 1;
+      }
+
+      // Daily summary
+      if (!dailySummary[date]) {
+        dailySummary[date] = { periods: {}, total: 0, attended: 0 };
+      }
+      dailySummary[date].periods[period] = studentAttendance.status === "present" ? "P" : "A";
+      dailySummary[date].total += 1;
+      if (studentAttendance.status === "present") {
+        dailySummary[date].attended += 1;
+      }
+    });
+
+    // Calculate percentages
+    const subjectPercentage = Object.entries(subjectSummary).map(([subject, { classesConducted, classesAttended }]) => ({
+      subject,
+      classesConducted,
+      classesAttended,
+      percentage: ((classesAttended / classesConducted) * 100).toFixed(2),
+    }));
+
+    res.status(200).json({
+      message: "Student attendance fetched successfully",
+      subjectSummary: subjectPercentage,
+      dailySummary,
+    });
+  } catch (error) {
+    console.error("Error fetching student attendance:", error.message || error);
+    res.status(500).json({
+      message: "An error occurred while fetching student attendance",
+      error: error.message || error,
+    });
+  }
+}
+
 module.exports = {
   markAttendance,
   fetchAttendance,
@@ -336,6 +407,7 @@ module.exports = {
   checkAttendance,
   fetchAttendanceBySubject,
   getMarkedSubjects,
+ getStudentAttendance,
   fetchAttendanceByFilters
 };
          
