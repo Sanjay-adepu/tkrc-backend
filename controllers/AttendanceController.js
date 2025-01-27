@@ -412,7 +412,7 @@ const getSectionOverallAttendance = async (req, res) => {
     }
 
     // Fetch all students in the section
-    const students = await StudentModel.find({
+    const students = await sectionStudents.find({
       year,
       department,
       section,
@@ -425,7 +425,7 @@ const getSectionOverallAttendance = async (req, res) => {
     }
 
     // Fetch attendance data for the section
-    const attendanceData = await AttendanceModel.find({
+    const attendanceData = await  Attendance.find({
       year,
       department,
       section,
