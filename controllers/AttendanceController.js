@@ -400,6 +400,89 @@ const getStudentAttendance = async (req, res) => {
   }
 }
 
+const getSectionOverallAttendance = async (req, res) => {
+  try {
+    const { year, department, section } = req.query;
+
+    // Validate required parameters
+    if (!year || !department || !section) {
+      return res.status(400).json({
+        message: "Year, department, and section are required",
+      });
+    }
+
+    // Fetch all students in the section
+    const students = await StudentModel.find({
+      year,
+      department,
+      section,
+    });
+
+    if (students.length === 0) {
+      return res.status(404).json({
+        message: "No students found for the given section",
+      });
+    }
+
+    // Fetch attendance data for the section
+    const attendanceData = await AttendanceModel.find({
+      year,
+      department,
+      section,
+    });
+
+    if (attendanceData.length === 0) {
+      return res.status(404).json({
+        message: "No attendance records found for the given section",
+      });
+    }
+
+    // Calculate overall attendance for each student
+    const studentAttendance = students.map((student) => {
+      const studentAttendanceData = attendanceData.filter(
+        (record) => record.rollNumber === student.rollNumber
+      );
+
+      // Aggregate attendance for the student
+      let totalClassesConducted = 0;
+      let totalClassesAttended = 0;
+
+      studentAttendanceData.forEach((record) => {
+        totalClassesConducted += record.classesConducted;
+        totalClassesAttended += record.classesAttended;
+      });
+
+      const percentage =
+        totalClassesConducted === 0
+          ? 0
+          : ((totalClassesAttended / totalClassesConducted) * 100).toFixed(2);
+
+      return {
+        rollNumber: student.rollNumber,
+        name: student.name,
+        classesConducted: totalClassesConducted,
+        classesAttended: totalClassesAttended,
+        percentage,
+      };
+    });
+
+    // Return the response
+    return res.status(200).json({
+      message: "Section overall attendance fetched successfully",
+      year,
+      department,
+      section,
+      attendanceSummary: studentAttendance,
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      message: "An error occurred while fetching section overall attendance",
+    });
+  }
+};
+
+
 module.exports = {
   markAttendance,
   fetchAttendance,
@@ -408,6 +491,7 @@ module.exports = {
   fetchAttendanceBySubject,
   getMarkedSubjects,
  getStudentAttendance,
+ getSectionOverallAttendance,
   fetchAttendanceByFilters
 };
          
