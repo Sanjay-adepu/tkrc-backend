@@ -150,8 +150,6 @@ const addSectionToDepartment = async (req, res) => {
 
 
 //login student
-const bcrypt = require("bcryptjs");
-const Student = require("../models/studentSection"); // Adjust path based on your folder structure
 
 const loginStudent = async (req, res) => {
   try {
@@ -250,4 +248,5 @@ module.exports = {
   addYear,
   addDepartmentToYear,
   addSectionToDepartment,
+  loginStudent
 };
