@@ -22,7 +22,8 @@ const getStudentsBySection = async (req, res) => {
 };
 
 // Add multiple students to a section
-// Add multiple students to a section
+
+
 const addStudentsToSection = async (req, res) => {
   try {
     const { yearId, departmentId, sectionId } = req.params;
@@ -32,37 +33,39 @@ const addStudentsToSection = async (req, res) => {
       return res.status(400).json({ message: "Students must be an array" });
     }
 
-    const year = await Year.findOne({ year: yearId }); // Find Year by year string
+    const year = await Year.findOne({ year: yearId });
     if (!year) return res.status(404).json({ message: "Year not found" });
 
-    const department = year.departments.find((dept) => dept.name === departmentId); // Find department by name
+    const department = year.departments.find((dept) => dept.name === departmentId);
     if (!department) return res.status(404).json({ message: "Department not found" });
 
-    const section = department.sections.find((sec) => sec.name === sectionId); // Find section by name
+    const section = department.sections.find((sec) => sec.name === sectionId);
     if (!section) return res.status(404).json({ message: "Section not found" });
 
-    students.forEach((student) => {
+    for (const student of students) {
       const { rollNumber, name, fatherName, password, role, image } = student;
 
       if (!rollNumber || !name || !password) {
         throw new Error("Each student must have a rollNumber, name, and password.");
       }
 
-      // Push the student object with all required fields
+      // Hash the password before storing
+      const hashedPassword = await bcrypt.hash(password, 10);
+
       section.students.push({
         rollNumber,
         name,
-        fatherName: fatherName || null, // Optional field
-        password, // Ideally, hash the password before storing it
-        role: role || "student", // Default to "student" if not provided
-        image: image || null, // Optional field
+        fatherName: fatherName || null,
+        password: hashedPassword,
+        role: role || "student",
+        image: image || null,
       });
-    });
+    }
 
     await year.save();
     res.status(201).json({ message: "Students added successfully", section });
   } catch (error) {
-    console.error("Error adding students:", error.message || error);
+    console.error("Error adding students:", error.message);
     res.status(500).json({ message: "Error adding students", error });
   }
 };
