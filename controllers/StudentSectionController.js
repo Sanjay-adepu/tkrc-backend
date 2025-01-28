@@ -1,5 +1,6 @@
 const Year = require("../models/studentSection");
 
+const bcrypt = require("bcryptjs");
 // Get students in a section 
 const getStudentsBySection = async (req, res) => {
   try {
