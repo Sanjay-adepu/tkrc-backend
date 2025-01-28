@@ -166,8 +166,39 @@ const loginStudent = async (req, res) => {
       });
     }
 
-    // Find the student by roll number
-    const student = await Year.findOne({ rollNumber });
+    // Find the student by traversing the Year model
+    const yearData = await Year.findOne({
+      "departments.sections.students.rollNumber": rollNumber,
+    });
+
+    if (!yearData) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid credentials: Student not found",
+      });
+    }
+
+    // Locate the exact student within the nested structure
+    let student = null;
+    let year = null;
+    let department = null;
+    let section = null;
+
+    for (const dept of yearData.departments) {
+      for (const sec of dept.sections) {
+        const foundStudent = sec.students.find(
+          (stud) => stud.rollNumber === rollNumber
+        );
+        if (foundStudent) {
+          student = foundStudent;
+          year = yearData.year;
+          department = dept.name;
+          section = sec.name;
+          break;
+        }
+      }
+      if (student) break;
+    }
 
     if (!student) {
       return res.status(401).json({
@@ -176,7 +207,7 @@ const loginStudent = async (req, res) => {
       });
     }
 
-    // Compare the provided password with the hashed password in the database
+    // Compare the provided password with the hashed password
     const isMatch = await bcrypt.compare(password, student.password);
 
     if (!isMatch) {
@@ -194,9 +225,9 @@ const loginStudent = async (req, res) => {
         id: student._id,
         name: student.name,
         rollNumber: student.rollNumber,
-        year: student.year,
-        department: student.department,
-        section: student.section,
+        year,
+        department,
+        section,
       },
     });
   } catch (error) {
