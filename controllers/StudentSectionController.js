@@ -152,6 +152,8 @@ const addSectionToDepartment = async (req, res) => {
 
 //login student
 
+
+
 const loginStudent = async (req, res) => {
   try {
     const { rollNumber, password } = req.body;
@@ -164,38 +166,8 @@ const loginStudent = async (req, res) => {
       });
     }
 
-    // Find the year containing the student by roll number
-    const yearData = await Year.findOne({
-      "departments.sections.students.rollNumber": rollNumber,
-    });
-
-    if (!yearData) {
-      return res.status(401).json({
-        success: false,
-        message: "Invalid credentials: Student not found",
-      });
-    }
-
-    let student;
-    let departmentName = null;
-    let sectionName = null;
-    let yearName = yearData.year; // Get the year name (if defined in the schema)
-
-    // Traverse through departments and sections to locate the student
-    yearData.departments.some((department) => {
-      return department.sections.some((section) => {
-        const foundStudent = section.students.find(
-          (s) => s.rollNumber === rollNumber
-        );
-        if (foundStudent) {
-          student = foundStudent;
-          departmentName = department.name;
-          sectionName = section.name;
-          return true; // Stop looping once student is found
-        }
-        return false;
-      });
-    });
+    // Find the student by roll number
+    const student = await Year.findOne({ rollNumber });
 
     if (!student) {
       return res.status(401).json({
@@ -204,7 +176,7 @@ const loginStudent = async (req, res) => {
       });
     }
 
-    // Compare passwords
+    // Compare the provided password with the hashed password in the database
     const isMatch = await bcrypt.compare(password, student.password);
 
     if (!isMatch) {
@@ -222,15 +194,13 @@ const loginStudent = async (req, res) => {
         id: student._id,
         name: student.name,
         rollNumber: student.rollNumber,
-        fatherName: student.fatherName,
-        role: student.role,
-        year: yearName,
-        department: departmentName,
-        section: sectionName,
+        year: student.year,
+        department: student.department,
+        section: student.section,
       },
     });
   } catch (error) {
-    console.error("Error during login:", error.message);
+    console.error("Error during student login:", error.message);
     res.status(500).json({
       success: false,
       message: "Error during login",
@@ -238,8 +208,6 @@ const loginStudent = async (req, res) => {
     });
   }
 };
-
-
 
 
 module.exports = {
