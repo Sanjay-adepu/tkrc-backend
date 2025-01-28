@@ -148,6 +148,101 @@ const addSectionToDepartment = async (req, res) => {
   }
 };
 
+
+//login student
+const bcrypt = require("bcryptjs");
+const Student = require("../models/studentSection"); // Adjust path based on your folder structure
+
+const loginStudent = async (req, res) => {
+  try {
+    const { rollNumber, password } = req.body;
+
+    // Validate input
+    if (!rollNumber || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Roll number and password are required",
+      });
+    }
+
+    // Find the year containing the student by roll number
+    const yearData = await Year.findOne({
+      "departments.sections.students.rollNumber": rollNumber,
+    });
+
+    if (!yearData) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid credentials: Student not found",
+      });
+    }
+
+    let student;
+    let departmentName = null;
+    let sectionName = null;
+    let yearName = yearData.year; // Get the year name (if defined in the schema)
+
+    // Traverse through departments and sections to locate the student
+    yearData.departments.some((department) => {
+      return department.sections.some((section) => {
+        const foundStudent = section.students.find(
+          (s) => s.rollNumber === rollNumber
+        );
+        if (foundStudent) {
+          student = foundStudent;
+          departmentName = department.name;
+          sectionName = section.name;
+          return true; // Stop looping once student is found
+        }
+        return false;
+      });
+    });
+
+    if (!student) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid credentials: Student not found",
+      });
+    }
+
+    // Compare passwords
+    const isMatch = await bcrypt.compare(password, student.password);
+
+    if (!isMatch) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid credentials: Incorrect password",
+      });
+    }
+
+    // Successful login
+    res.status(200).json({
+      success: true,
+      message: "Login successful",
+      student: {
+        id: student._id,
+        name: student.name,
+        rollNumber: student.rollNumber,
+        fatherName: student.fatherName,
+        role: student.role,
+        year: yearName,
+        department: departmentName,
+        section: sectionName,
+      },
+    });
+  } catch (error) {
+    console.error("Error during login:", error.message);
+    res.status(500).json({
+      success: false,
+      message: "Error during login",
+      error: error.message,
+    });
+  }
+};
+
+
+
+
 module.exports = {
   getStudentsBySection,
   addStudentsToSection,
