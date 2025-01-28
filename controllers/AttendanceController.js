@@ -412,11 +412,7 @@ const getSectionOverallAttendance = async (req, res) => {
     }
 
     // Fetch all students in the section
-    const students = await Year.find({
-      year,
-      department,
-      section,
-    });
+    const students = await Year.find({ year, department, section });
 
     if (students.length === 0) {
       return res.status(404).json({
@@ -424,64 +420,69 @@ const getSectionOverallAttendance = async (req, res) => {
       });
     }
 
-    // Fetch attendance data for the section
-    const attendanceData = await  Attendance.find({
+    // Fetch all attendance records for the section
+    const attendanceRecords = await Attendance.find({
       year,
       department,
       section,
     });
 
-    if (attendanceData.length === 0) {
+    if (attendanceRecords.length === 0) {
       return res.status(404).json({
         message: "No attendance records found for the given section",
       });
     }
 
     // Calculate overall attendance for each student
-    const studentAttendance = students.map((student) => {
-      const studentAttendanceData = attendanceData.filter(
-        (record) => record.rollNumber === student.rollNumber
-      );
-
-      // Aggregate attendance for the student
+    const studentAttendanceSummary = students.map((student) => {
       let totalClassesConducted = 0;
       let totalClassesAttended = 0;
 
-      studentAttendanceData.forEach((record) => {
-        totalClassesConducted += record.classesConducted;
-        totalClassesAttended += record.classesAttended;
+      // Loop through attendance records to calculate data for the student
+      attendanceRecords.forEach((record) => {
+        const studentRecord = record.attendance.find(
+          (att) => att.rollNumber === student.rollNumber
+        );
+
+        if (studentRecord) {
+          totalClassesConducted += 1; // Increment classes conducted
+          if (studentRecord.status === "present") {
+            totalClassesAttended += 1; // Increment classes attended
+          }
+        }
       });
 
-      const percentage =
+      // Calculate attendance percentage
+      const attendancePercentage =
         totalClassesConducted === 0
-          ? 0
+          ? "0.00"
           : ((totalClassesAttended / totalClassesConducted) * 100).toFixed(2);
 
       return {
         rollNumber: student.rollNumber,
         name: student.name,
-        classesConducted: totalClassesConducted,
-        classesAttended: totalClassesAttended,
-        percentage,
+        totalClassesConducted,
+        totalClassesAttended,
+        attendancePercentage,
       };
     });
 
-    // Return the response
-    return res.status(200).json({
+    // Return the calculated data
+    res.status(200).json({
       message: "Section overall attendance fetched successfully",
       year,
       department,
       section,
-      attendanceSummary: studentAttendance,
+      attendanceSummary: studentAttendanceSummary,
     });
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({
+    console.error("Error calculating section overall attendance:", error.message || error);
+    res.status(500).json({
       message: "An error occurred while fetching section overall attendance",
+      error: error.message || error,
     });
   }
 };
-
 
 module.exports = {
   markAttendance,
