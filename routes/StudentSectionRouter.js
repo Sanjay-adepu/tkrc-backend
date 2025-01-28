@@ -20,5 +20,5 @@ router.get('/:yearId/:departmentId/:sectionId/students', studentController.getSt
 
 // Add or Update Timetable for a Section
 router.post('/:yearId/:departmentId/:sectionId/timetable', studentController.upsertSectionTimetable);
-
+router.post('/login',studentController.loginStudent);
 module.exports = router;
