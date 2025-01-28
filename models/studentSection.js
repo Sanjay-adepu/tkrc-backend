@@ -4,7 +4,7 @@ const StudentSchema = new mongoose.Schema({
   rollNumber: { type: String, required: true }, // e.g., "101"
   name: { type: String, required: true }, // e.g., "John Doe"
   fatherName: { type: String, required: false }, // e.g., "Robert Doe"
-  password: { type: String }, // Password for the student
+  password: { type: String ,required: false}, // Password for the student
   role: { type: String, enum: ["student", "admin", "teacher"], default: "student" }, // Role of the user
   image: { type: String, required: false }, // Path or URL to the student's image
 });
