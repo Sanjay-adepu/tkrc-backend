@@ -22,14 +22,17 @@ const getStudentsBySection = async (req, res) => {
 };
 
 // Add multiple students to a section
-
-
 const addStudentsToSection = async (req, res) => {
   try {
     const { yearId, departmentId, sectionId } = req.params;
-    const { students } = req.body;
+    let { students } = req.body;
 
-    if (!students || !Array.isArray(students)) {
+    // ✅ Ensure students is parsed correctly
+    if (typeof students === "string") {
+      students = JSON.parse(students);
+    }
+
+    if (!Array.isArray(students)) {
       return res.status(400).json({ message: "Students must be an array" });
     }
 
@@ -43,15 +46,15 @@ const addStudentsToSection = async (req, res) => {
     if (!section) return res.status(404).json({ message: "Section not found" });
 
     for (const student of students) {
-      const { rollNumber, name, fatherName, password, role, image } = student;
+      const { rollNumber, name, fatherName, password, role } = student;
 
       if (!rollNumber || !name || !password) {
-        throw new Error("Each student must have a rollNumber, name, and password.");
+        return res.status(400).json({ message: "Each student must have a rollNumber, name, and password." });
       }
 
-      // Hash the password before storing
       const hashedPassword = await bcrypt.hash(password, 10);
-     const imagePath = req.file ? req.file.path : null;
+      const imagePath = req.file ? req.file.path : null;
+
       section.students.push({
         rollNumber,
         name,
@@ -66,9 +69,10 @@ const addStudentsToSection = async (req, res) => {
     res.status(201).json({ message: "Students added successfully", section });
   } catch (error) {
     console.error("Error adding students:", error.message);
-    res.status(500).json({ message: "Error adding students", error });
+    res.status(500).json({ message: "Error adding students", error: error.message });
   }
 };
+
 
 // Add or update a timetable for a section
 // Add or update timetable for a section
