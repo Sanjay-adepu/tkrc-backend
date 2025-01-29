@@ -74,26 +74,25 @@ const addStudentsToSection = async (req, res) => {
 // Add or update timetable for a section
 const upsertSectionTimetable = async (req, res) => {
   try {
-    const { year, department, section } = req.params;
+    const { yearId, departmentId, sectionId } = req.params;
     const { timetable } = req.body;
 
-    if (!timetable || !Array.isArray(timetable)) {
-      return res.status(400).json({ message: "Timetable must be a non-empty array" });
-    }
+    console.log("Received yearId:", yearId);
 
-    // Find Year by name
-    const yearData = await Year.findOne({ year });
+    const allYears = await Year.find().select("year");
+    console.log("Available years in DB:", allYears.map(y => y.year));
+
+    const yearData = await Year.findOne({ year: yearId });
     if (!yearData) return res.status(404).json({ message: "Year not found" });
 
-    // Find Department by name
-    const deptData = yearData.departments.find((dept) => dept.name === department);
+    console.log("Year found:", yearData.year);
+
+    const deptData = yearData.departments.find(dept => dept.name === departmentId);
     if (!deptData) return res.status(404).json({ message: "Department not found" });
 
-    // Find Section by name
-    const sectionData = deptData.sections.find((sec) => sec.name === section);
+    const sectionData = deptData.sections.find(sec => sec.name === sectionId);
     if (!sectionData) return res.status(404).json({ message: "Section not found" });
 
-    // Update the timetable
     sectionData.timetable = timetable;
     await yearData.save();
 
