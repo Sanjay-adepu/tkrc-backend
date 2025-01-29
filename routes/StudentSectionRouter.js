@@ -2,6 +2,22 @@ const express = require('express');
 const router = express.Router();
 
 const studentController = require('../controllers/StudentSectionController');
+const multer = require("multer")
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
+const cloudinary = require("../cloudnaryConfig.js");
+ 
+// Set up Cloudinary storage
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "faculty-images", // Folder in your Cloudinary account
+    allowed_formats: ["jpg", "jpeg", "png"], // Allowed image formats
+  },
+});
+
+// Configure Multer to use Cloudinary storage
+const upload = multer({ storage });
+
 
 // Add Year
 router.post('/years', studentController.addYear);
