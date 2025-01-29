@@ -1,12 +1,15 @@
 const Faculty = require("../models/facultymodel");
 const bcrypt = require("bcryptjs");
 const path = require("path");
-      
+      const Faculty = require("../models/facultymodel");
+const bcrypt = require("bcryptjs");
+const path = require("path");
+
 const addFaculty = async (req, res) => {  
   try {
-    const { name, facultyId, role, department, password, timetable } = req.body;
+    const { name, facultyId, role, department, subject, designation, password, timetable } = req.body;
 
-    if (!name || !facultyId || !role || !department || !password || !timetable) {
+    if (!name || !facultyId || !role || !department || !subject || !designation || !password || !timetable) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
@@ -31,6 +34,8 @@ const addFaculty = async (req, res) => {
       facultyId,
       role,
       department,
+      subject, // Added subject field
+      designation, // Added designation field
       password: hashedPassword,
       timetable: parsedTimetable,
       image: imagePath,
