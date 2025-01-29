@@ -243,6 +243,134 @@ const loginStudent = async (req, res) => {
   }
 };
 
+// Add timetable to a section
+const addTimetable = async (req, res) => {
+  try {
+    const { year, department, section, timetable } = req.body;
+
+    if (!year || !department || !section || !timetable) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    let parsedTimetable;
+    try {
+      parsedTimetable = JSON.parse(timetable);
+      if (!Array.isArray(parsedTimetable) || parsedTimetable.length === 0) {
+        return res.status(400).json({ message: "Timetable format is invalid" });
+      }
+    } catch (error) {
+      return res.status(400).json({ message: "Invalid timetable JSON format" });
+    }
+
+    // Find the year, department, and section
+    const yearData = await Year.findOne({ year });
+    if (!yearData) return res.status(404).json({ message: "Year not found" });
+
+    const deptData = yearData.departments.find((dept) => dept.name === department);
+    if (!deptData) return res.status(404).json({ message: "Department not found" });
+
+    const sectionData = deptData.sections.find((sec) => sec.name === section);
+    if (!sectionData) return res.status(404).json({ message: "Section not found" });
+
+    // Add the timetable
+    sectionData.timetable = parsedTimetable;
+
+    await yearData.save();
+    res.status(200).json({ message: "Timetable added successfully", timetable: sectionData.timetable });
+
+  } catch (error) {
+    console.error("Error in addTimetable:", error.message);
+    res.status(500).json({ message: "Error adding timetable", error: error.message });
+  }
+};
+
+// Get timetable for a section
+const getTimetable = async (req, res) => {
+  try {
+    const { year, department, section } = req.params;
+
+    const yearData = await Year.findOne({ year });
+    if (!yearData) return res.status(404).json({ message: "Year not found" });
+
+    const deptData = yearData.departments.find((dept) => dept.name === department);
+    if (!deptData) return res.status(404).json({ message: "Department not found" });
+
+    const sectionData = deptData.sections.find((sec) => sec.name === section);
+    if (!sectionData) return res.status(404).json({ message: "Section not found" });
+
+    res.status(200).json({ timetable: sectionData.timetable });
+
+  } catch (error) {
+    console.error("Error in getTimetable:", error.message);
+    res.status(500).json({ message: "Error fetching timetable", error: error.message });
+  }
+};
+
+// Update timetable for a section
+const updateTimetable = async (req, res) => {
+  try {
+    const { year, department, section } = req.params;
+    const { timetable } = req.body;
+
+    let parsedTimetable;
+    try {
+      parsedTimetable = JSON.parse(timetable);
+      if (!Array.isArray(parsedTimetable) || parsedTimetable.length === 0) {
+        return res.status(400).json({ message: "Timetable format is invalid" });
+      }
+    } catch (error) {
+      return res.status(400).json({ message: "Invalid timetable JSON format" });
+    }
+
+    const yearData = await Year.findOne({ year });
+    if (!yearData) return res.status(404).json({ message: "Year not found" });
+
+    const deptData = yearData.departments.find((dept) => dept.name === department);
+    if (!deptData) return res.status(404).json({ message: "Department not found" });
+
+    const sectionData = deptData.sections.find((sec) => sec.name === section);
+    if (!sectionData) return res.status(404).json({ message: "Section not found" });
+
+    // Update the timetable
+    sectionData.timetable = parsedTimetable;
+
+    await yearData.save();
+    res.status(200).json({ message: "Timetable updated successfully", timetable: sectionData.timetable });
+
+  } catch (error) {
+    console.error("Error in updateTimetable:", error.message);
+    res.status(500).json({ message: "Error updating timetable", error: error.message });
+  }
+};
+
+// Delete timetable for a section
+const deleteTimetable = async (req, res) => {
+  try {
+    const { year, department, section } = req.params;
+
+    const yearData = await Year.findOne({ year });
+    if (!yearData) return res.status(404).json({ message: "Year not found" });
+
+    const deptData = yearData.departments.find((dept) => dept.name === department);
+    if (!deptData) return res.status(404).json({ message: "Department not found" });
+
+    const sectionData = deptData.sections.find((sec) => sec.name === section);
+    if (!sectionData) return res.status(404).json({ message: "Section not found" });
+
+    // Remove the timetable
+    sectionData.timetable = [];
+
+    await yearData.save();
+    res.status(200).json({ message: "Timetable deleted successfully" });
+
+  } catch (error) {
+    console.error("Error in deleteTimetable:", error.message);
+    res.status(500).json({ message: "Error deleting timetable", error: error.message });
+  }
+};
+
+
+
 
 module.exports = {
   getStudentsBySection,
@@ -251,5 +379,8 @@ module.exports = {
   addYear,
   addDepartmentToYear,
   addSectionToDepartment,
+  getTimetable,
+  deleteTimetable,
+  updateTimetable,
   loginStudent
 };
