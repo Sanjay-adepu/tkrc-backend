@@ -1,5 +1,5 @@
 const Year = require("../models/studentSection");
-
+const path =require("path");
 const bcrypt = require("bcryptjs");
 // Get students in a section 
 const getStudentsBySection = async (req, res) => {
@@ -51,14 +51,14 @@ const addStudentsToSection = async (req, res) => {
 
       // Hash the password before storing
       const hashedPassword = await bcrypt.hash(password, 10);
-
+     const imagePath = req.file ? req.file.path : null;
       section.students.push({
         rollNumber,
         name,
         fatherName: fatherName || null,
         password: hashedPassword,
         role: role || "student",
-        image: image || null,
+        image: imagePath,
       });
     }
 
