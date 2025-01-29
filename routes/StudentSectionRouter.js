@@ -28,6 +28,13 @@ router.post('/:yearId/departments', studentController.addDepartmentToYear);
 // Add Section to a Department
 router.post('/:yearId/:departmentId/sections', studentController.addSectionToDepartment);
 
+router.post("/timetable", addTimetable);
+router.get("/timetable/:year/:department/:section", studentController.getTimetable);
+router.put("/timetable/:year/:department/:section", studentController.updateTimetable);
+router.delete("/timetable/:year/:department/:section", studentController.deleteTimetable);
+
+
+
 // Add Students to a Section
 router.post('/:yearId/:departmentId/:sectionId/students',upload.single("image"),studentController.addStudentsToSection);
 
