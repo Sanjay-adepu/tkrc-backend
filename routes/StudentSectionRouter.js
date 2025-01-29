@@ -36,6 +36,7 @@ router.post('/:yearId/:departmentId/:sectionId/students',upload.single("image"),
 // Get Students in a Section
 router.get('/:yearId/:departmentId/:sectionId/students', studentController.getStudentsBySection);
 
+router.get("/:yearId/:departmentId/:sectionId/timetable", getSectionTimetable);
 // Add or Update Timetable for a Section
 router.post('/:yearId/:departmentId/:sectionId/timetable', studentController.upsertSectionTimetable);
 router.post('/login',studentController.loginStudent);
