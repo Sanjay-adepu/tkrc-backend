@@ -19,6 +19,8 @@ const FacultySchema = new mongoose.Schema(
     facultyId: { type: String, unique: true, required: true },
     role: { type: String, required: true },
     department: { type: String, required: true },
+    subject: { type: String, required: true }, // Added subject field
+    designation: { type: String, required: true }, // Added designation field
     password: { type: String, required: true }, // Store already hashed passwords
     timetable: [TimetableSchema],
     image: { type: String },
