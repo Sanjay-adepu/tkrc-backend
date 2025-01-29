@@ -77,18 +77,8 @@ const upsertSectionTimetable = async (req, res) => {
     const { year, department, section } = req.params;
     const { timetable } = req.body;
 
-    if (!timetable) {
-      return res.status(400).json({ message: "Timetable is required" });
-    }
-
-    let parsedTimetable;
-    try {
-      parsedTimetable = JSON.parse(timetable);
-      if (!Array.isArray(parsedTimetable) || parsedTimetable.length === 0) {
-        return res.status(400).json({ message: "Timetable must be a non-empty array" });
-      }
-    } catch (error) {
-      return res.status(400).json({ message: "Invalid timetable JSON format" });
+    if (!timetable || !Array.isArray(timetable)) {
+      return res.status(400).json({ message: "Timetable must be a non-empty array" });
     }
 
     // Find Year by name
@@ -104,7 +94,7 @@ const upsertSectionTimetable = async (req, res) => {
     if (!sectionData) return res.status(404).json({ message: "Section not found" });
 
     // Update the timetable
-    sectionData.timetable = parsedTimetable;
+    sectionData.timetable = timetable;
     await yearData.save();
 
     res.status(200).json({ message: "Timetable added/updated successfully", timetable: sectionData.timetable });
@@ -113,7 +103,6 @@ const upsertSectionTimetable = async (req, res) => {
     res.status(500).json({ message: "Error upserting timetable", error: error.message });
   }
 };
-
 // Add a new year
 const addYear = async (req, res) => {
   try {
