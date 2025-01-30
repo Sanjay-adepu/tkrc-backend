@@ -447,6 +447,7 @@ const getStudentByRollNumber = async (req, res) => {
         name: student.name,
         rollNumber: student.rollNumber,
         fatherName: student.fatherName || null,
+        role,
         year,
         department,
         section,
