@@ -397,14 +397,23 @@ const getSectionTimetable = async (req, res) => {
     res.status(500).json({ message: "Error fetching timetable", error: error.message });
   }
 };
-  
+
+
 const getStudentById = async (req, res) => {
   try {
     const { studentId } = req.params;
 
+    console.log("Searching for student ID:", studentId);
+
+    if (!mongoose.Types.ObjectId.isValid(studentId)) {
+      return res.status(400).json({ message: "Invalid Student ID format" });
+    }
+
     const yearData = await Year.findOne({
-      "departments.sections.students._id": studentId,
+      "departments.sections.students._id": new mongoose.Types.ObjectId(studentId),
     });
+
+    console.log("Year data found:", yearData);
 
     if (!yearData) {
       return res.status(404).json({ message: "Student not found" });
