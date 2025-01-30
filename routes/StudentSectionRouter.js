@@ -28,7 +28,7 @@ router.post('/:yearId/departments', studentController.addDepartmentToYear);
 // Add Section to a Department
 router.post('/:yearId/:departmentId/sections', studentController.addSectionToDepartment);
 
-router.get('/:id',studentController.getStudentById);
+
 router.get('/:rollNumber',studentController.getStudentByRollNumber);
 // Add Students to a Section
 router.post('/:yearId/:departmentId/:sectionId/students',upload.single("image"),studentController.addStudentsToSection);
