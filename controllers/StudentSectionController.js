@@ -404,8 +404,7 @@ const getStudentById = async (req, res) => {
   try {
     const { studentId } = req.params;
 
-    console.log("Searching for student ID:", studentId);
-
+    // Check if the ID is a valid ObjectId
     if (!mongoose.Types.ObjectId.isValid(studentId)) {
       return res.status(400).json({ message: "Invalid Student ID format" });
     }
@@ -413,8 +412,6 @@ const getStudentById = async (req, res) => {
     const yearData = await Year.findOne({
       "departments.sections.students._id": new mongoose.Types.ObjectId(studentId),
     });
-
-    console.log("Year data found:", yearData);
 
     if (!yearData) {
       return res.status(404).json({ message: "Student not found" });
@@ -461,7 +458,64 @@ const getStudentById = async (req, res) => {
   }
 };
 
+                                         
 
+const getStudentByRollNumber = async (req, res) => {
+  try {
+    const { rollNumber } = req.params;
+
+    // Find the year data that contains the student
+    const yearData = await Year.findOne({
+      "departments.sections.students.rollNumber": rollNumber,
+    });
+
+    if (!yearData) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    let student = null;
+    let year = null;
+    let department = null;
+    let section = null;
+
+    // Loop through departments and sections to find the student
+    for (const dept of yearData.departments) {
+      for (const sec of dept.sections) {
+        const foundStudent = sec.students.find(
+          (stud) => stud.rollNumber === rollNumber
+        );
+        if (foundStudent) {
+          student = foundStudent;
+          year = yearData.year;
+          department = dept.name;
+          section = sec.name;
+          break;
+        }
+      }
+      if (student) break;
+    }
+
+    if (!student) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    res.status(200).json({
+      student: {
+        id: student._id,
+        name: student.name,
+        rollNumber: student.rollNumber,
+        fatherName: student.fatherName || null,
+        year,
+        department,
+        section,
+        image: student.image || null,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching student details:", error.message);
+    res.status(500).json({ message: "Error fetching student details", error: error.message });
+  }
+};
 
 module.exports = {
   getStudentsBySection,
@@ -475,5 +529,6 @@ module.exports = {
   updateTimetable,
   getSectionTimetable,
   getStudentById,
+  getStudentByRollNumber,
   loginStudent
 };
