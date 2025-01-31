@@ -332,17 +332,14 @@ const getMarkedSubjects = async (req, res) => {
 
 const getStudentAttendance = async (req, res) => {
   try {
-    const { rollNumber, year, department, section } = req.query;
+    const { rollNumber } = req.query;
 
-    if (!rollNumber || !year || !department || !section) {
-      return res.status(400).json({ message: "Roll number, year, department, and section are required" });
+    if (!rollNumber) {
+      return res.status(400).json({ message: "Roll number is required" });
     }
 
-    // Find all attendance records for the student
+    // Find all attendance records for the student by roll number
     const attendanceRecords = await Attendance.find({
-      year,
-      department,
-      section,
       "attendance.rollNumber": rollNumber,
     });
 
@@ -398,7 +395,7 @@ const getStudentAttendance = async (req, res) => {
       error: error.message || error,
     });
   }
-}
+};
 
 const getSectionOverallAttendance = async (req, res) => {
   try {
