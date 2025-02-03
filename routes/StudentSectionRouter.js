@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-
+ 
 const studentController = require('../controllers/StudentSectionController');
 const multer = require("multer");
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
