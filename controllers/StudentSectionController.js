@@ -463,7 +463,7 @@ module.exports = {
   addYear,
   addDepartmentToYear,
   addSectionToDepartment,
-  getTimetable,
+
   deleteAllStudentsInSection,
   getSectionTimetable,
   deleteStudentByRollNumber,
