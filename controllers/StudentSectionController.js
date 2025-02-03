@@ -293,63 +293,7 @@ const addTimetable = async (req, res) => {
 };
 
 // Get timetable for a section
-const getTimetable = async (req, res) => {
-  try {
-    const { year, department, section } = req.params;
 
-    const yearData = await Year.findOne({ year });
-    if (!yearData) return res.status(404).json({ message: "Year not found" });
-
-    const deptData = yearData.departments.find((dept) => dept.name === department);
-    if (!deptData) return res.status(404).json({ message: "Department not found" });
-
-    const sectionData = deptData.sections.find((sec) => sec.name === section);
-    if (!sectionData) return res.status(404).json({ message: "Section not found" });
-
-    res.status(200).json({ timetable: sectionData.timetable });
-
-  } catch (error) {
-    console.error("Error in getTimetable:", error.message);
-    res.status(500).json({ message: "Error fetching timetable", error: error.message });
-  }
-};
-
-// Update timetable for a section
-const updateTimetable = async (req, res) => {
-  try {
-    const { year, department, section } = req.params;
-    const { timetable } = req.body;
-
-    let parsedTimetable;
-    try {
-      parsedTimetable = JSON.parse(timetable);
-      if (!Array.isArray(parsedTimetable) || parsedTimetable.length === 0) {
-        return res.status(400).json({ message: "Timetable format is invalid" });
-      }
-    } catch (error) {
-      return res.status(400).json({ message: "Invalid timetable JSON format" });
-    }
-
-    const yearData = await Year.findOne({ year });
-    if (!yearData) return res.status(404).json({ message: "Year not found" });
-
-    const deptData = yearData.departments.find((dept) => dept.name === department);
-    if (!deptData) return res.status(404).json({ message: "Department not found" });
-
-    const sectionData = deptData.sections.find((sec) => sec.name === section);
-    if (!sectionData) return res.status(404).json({ message: "Section not found" });
-
-    // Update the timetable
-    sectionData.timetable = parsedTimetable;
-
-    await yearData.save();
-    res.status(200).json({ message: "Timetable updated successfully", timetable: sectionData.timetable });
-
-  } catch (error) {
-    console.error("Error in updateTimetable:", error.message);
-    res.status(500).json({ message: "Error updating timetable", error: error.message });
-  }
-};
 
 // Delete timetable for a section
 const deleteTimetable = async (req, res) => {
@@ -460,6 +404,59 @@ const getStudentByRollNumber = async (req, res) => {
   }
 };
 
+const deleteStudentByRollNumber = async (req, res) => {
+  try {
+    const { yearId, departmentId, sectionId, rollNumber } = req.params;
+
+    const year = await Year.findOne({ year: yearId });
+    if (!year) return res.status(404).json({ message: "Year not found" });
+
+    const department = year.departments.find(dept => dept.name === departmentId);
+    if (!department) return res.status(404).json({ message: "Department not found" });
+
+    const section = department.sections.find(sec => sec.name === sectionId);
+    if (!section) return res.status(404).json({ message: "Section not found" });
+
+    const studentIndex = section.students.findIndex(student => student.rollNumber === rollNumber);
+    if (studentIndex === -1) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    section.students.splice(studentIndex, 1); // Remove student from array
+    await year.save();
+
+    res.status(200).json({ message: "Student deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting student:", error.message);
+    res.status(500).json({ message: "Error deleting student", error: error.message });
+  }
+};
+
+const deleteAllStudentsInSection = async (req, res) => {
+  try {
+    const { yearId, departmentId, sectionId } = req.params;
+
+    const year = await Year.findOne({ year: yearId });
+    if (!year) return res.status(404).json({ message: "Year not found" });
+
+    const department = year.departments.find(dept => dept.name === departmentId);
+    if (!department) return res.status(404).json({ message: "Department not found" });
+
+    const section = department.sections.find(sec => sec.name === sectionId);
+    if (!section) return res.status(404).json({ message: "Section not found" });
+
+    section.students = []; // Clear all students
+    await year.save();
+
+    res.status(200).json({ message: "All students deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting all students:", error.message);
+    res.status(500).json({ message: "Error deleting all students", error: error.message });
+  }
+};
+
+
+
 module.exports = {
   getStudentsBySection,
   addStudentsToSection,
@@ -468,10 +465,9 @@ module.exports = {
   addDepartmentToYear,
   addSectionToDepartment,
   getTimetable,
-  deleteTimetable,
-  updateTimetable,
+  deleteAllStudentsInSection,
   getSectionTimetable,
-  
+  deleteStudentByRollNumber,
   getStudentByRollNumber,
   loginStudent
 };
