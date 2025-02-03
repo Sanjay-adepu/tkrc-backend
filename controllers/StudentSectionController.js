@@ -404,6 +404,7 @@ const getStudentByRollNumber = async (req, res) => {
   }
 };
 
+// Delete a student from a section by roll number
 const deleteStudentByRollNumber = async (req, res) => {
   try {
     const { yearId, departmentId, sectionId, rollNumber } = req.params;
@@ -411,18 +412,16 @@ const deleteStudentByRollNumber = async (req, res) => {
     const year = await Year.findOne({ year: yearId });
     if (!year) return res.status(404).json({ message: "Year not found" });
 
-    const department = year.departments.find(dept => dept.name === departmentId);
+    const department = year.departments.find((dept) => dept.name === departmentId);
     if (!department) return res.status(404).json({ message: "Department not found" });
 
-    const section = department.sections.find(sec => sec.name === sectionId);
+    const section = department.sections.find((sec) => sec.name === sectionId);
     if (!section) return res.status(404).json({ message: "Section not found" });
 
-    const studentIndex = section.students.findIndex(student => student.rollNumber === rollNumber);
-    if (studentIndex === -1) {
-      return res.status(404).json({ message: "Student not found" });
-    }
+    const studentIndex = section.students.findIndex((student) => student.rollNumber === rollNumber);
+    if (studentIndex === -1) return res.status(404).json({ message: "Student not found" });
 
-    section.students.splice(studentIndex, 1); // Remove student from array
+    section.students.splice(studentIndex, 1); // Remove the student
     await year.save();
 
     res.status(200).json({ message: "Student deleted successfully" });
@@ -432,6 +431,7 @@ const deleteStudentByRollNumber = async (req, res) => {
   }
 };
 
+// Delete all students from a section
 const deleteAllStudentsInSection = async (req, res) => {
   try {
     const { yearId, departmentId, sectionId } = req.params;
@@ -439,13 +439,13 @@ const deleteAllStudentsInSection = async (req, res) => {
     const year = await Year.findOne({ year: yearId });
     if (!year) return res.status(404).json({ message: "Year not found" });
 
-    const department = year.departments.find(dept => dept.name === departmentId);
+    const department = year.departments.find((dept) => dept.name === departmentId);
     if (!department) return res.status(404).json({ message: "Department not found" });
 
-    const section = department.sections.find(sec => sec.name === sectionId);
+    const section = department.sections.find((sec) => sec.name === sectionId);
     if (!section) return res.status(404).json({ message: "Section not found" });
 
-    section.students = []; // Clear all students
+    section.students = []; // Remove all students
     await year.save();
 
     res.status(200).json({ message: "All students deleted successfully" });
@@ -454,7 +454,6 @@ const deleteAllStudentsInSection = async (req, res) => {
     res.status(500).json({ message: "Error deleting all students", error: error.message });
   }
 };
-
 
 
 module.exports = {
