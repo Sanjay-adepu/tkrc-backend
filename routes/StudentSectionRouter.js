@@ -10,7 +10,7 @@ const cloudinary = require("../cloudnaryConfig.js");
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
-    folder: "faculty-images", // Folder in your Cloudinary account
+    folder: "Students", // Folder in your Cloudinary account
     allowed_formats: ["jpg", "jpeg", "png"], // Allowed image formats
   },
 });
