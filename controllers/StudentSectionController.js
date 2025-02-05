@@ -47,23 +47,25 @@ const addStudentsToSection = async (req, res) => {
     if (!section) return res.status(404).json({ message: "Section not found" });
 
     for (const student of students) {
-      const { rollNumber, name, fatherName, password, role } = student;
+  const { rollNumber, name, fatherName, password, role, mobileNumber, fatherMobileNumber } = student;
 
-      if (!rollNumber || !name || !password) {
-        return res.status(400).json({ message: "Each student must have a rollNumber, name, and password." });
-      }
+  if (!rollNumber || !name || !password || !mobileNumber) {
+    return res.status(400).json({ message: "Each student must have a rollNumber, name, password, and mobile number." });
+  }
 
-      const hashedPassword = await bcrypt.hash(password, 10);
-      const imagePath = req.file ? req.file.path : null;
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const imagePath = req.file ? req.file.path : null;
 
-      section.students.push({
-        rollNumber,
-        name,
-        fatherName: fatherName || null,
-        password: hashedPassword,
-        role: role || "student",
-        image: imagePath,
-      });
+  section.students.push({
+    rollNumber,
+    name,
+    fatherName: fatherName || null,
+    password: hashedPassword,
+    role: role || "student",
+    image: imagePath,
+    mobileNumber,
+    fatherMobileNumber: fatherMobileNumber || null,
+  });
     }
 
     await year.save();
@@ -386,18 +388,20 @@ const getStudentByRollNumber = async (req, res) => {
     }
 
     res.status(200).json({
-      student: {
-        id: student._id,
-        name: student.name,
-        rollNumber: student.rollNumber,
-        fatherName: student.fatherName || null,
-        role:student.role,
-        year,
-        department,
-        section,
-        image: student.image || null,
-      },
-    });
+  student: {
+    id: student._id,
+    name: student.name,
+    rollNumber: student.rollNumber,
+    fatherName: student.fatherName || null,
+    role: student.role,
+    year,
+    department,
+    section,
+    image: student.image || null,
+    mobileNumber: student.mobileNumber,
+    fatherMobileNumber: student.fatherMobileNumber || null,
+  },
+});
   } catch (error) {
     console.error("Error fetching student details:", error.message);
     res.status(500).json({ message: "Error fetching student details", error: error.message });
