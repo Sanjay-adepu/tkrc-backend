@@ -50,8 +50,11 @@ const addStudentsToSection = async (req, res) => {
   const { rollNumber, name, fatherName, password, role, mobileNumber, fatherMobileNumber } = student;
 
   if (!rollNumber || !name || !password || !mobileNumber) {
+    console.error("Missing required fields in student:", student);
     return res.status(400).json({ message: "Each student must have a rollNumber, name, password, and mobile number." });
   }
+
+  console.log("Adding student:", { rollNumber, name, mobileNumber }); // Debug log
 
   const hashedPassword = await bcrypt.hash(password, 10);
   const imagePath = req.file ? req.file.path : null;
@@ -66,8 +69,7 @@ const addStudentsToSection = async (req, res) => {
     mobileNumber,
     fatherMobileNumber: fatherMobileNumber || null,
   });
-    }
-
+      }
     await year.save();
     res.status(201).json({ message: "Students added successfully", section });
   } catch (error) {
