@@ -60,15 +60,15 @@ const addStudentsToSection = async (req, res) => {
   const imagePath = req.file ? req.file.path : null;
 
   section.students.push({
-    rollNumber,
-    name,
-    fatherName: fatherName || null,
-    password: hashedPassword,
-    role: role || "student",
-    image: imagePath,
-    mobileNumber,
-    fatherMobileNumber: fatherMobileNumber || null,
-  });
+  rollNumber,
+  name,
+  fatherName: fatherName || null,
+  password: hashedPassword,
+  role: role || "student",
+  image: imagePath,
+  mobileNumber: String(mobileNumber),  // ✅ Ensure it's a string
+  fatherMobileNumber: fatherMobileNumber ? String(fatherMobileNumber) : null
+});
       }
     await year.save();
     res.status(201).json({ message: "Students added successfully", section });
