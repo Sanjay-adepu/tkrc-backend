@@ -8,7 +8,7 @@ const StudentSchema = new mongoose.Schema({
   password: { type: String, required: false }, // Password for the student
   role: { type: String, enum: ["student", "admin", "teacher"], default: "student" }, // Role of the user
   image: { type: String, required: false }, // Path or URL to the student's image
-  mobileNumber: { type: String, required: true }, // Student's mobile number
+  mobileNumber: { type: String, required: false}, // Student's mobile number
   fatherMobileNumber: { type: String, required: false }, // Father's mobile number (optional)
 });
 
