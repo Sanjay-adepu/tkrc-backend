@@ -49,12 +49,12 @@ const getAbsentStudents = async () => {
       record.attendance.forEach((entry) => {
         if (entry.status === "absent") {
           if (!absentStudents[entry.rollNumber]) {
-            absentStudents[entry.rollNumber] = { 
+            absentStudents[entry.rollNumber] = {
               name: entry.name,
-              absentCount: 0, 
+              absentCount: 0,
               department: record.department,
               section: record.section,
-              year: record.year
+              year: record.year,
             };
           }
           absentStudents[entry.rollNumber].absentCount += 1;
@@ -84,7 +84,7 @@ const getParentMobileNumbers = async (absentStudents) => {
             if (absentStudents[student.rollNumber]) {
               studentMobileMap[student.rollNumber] = {
                 name: student.name,
-                fatherMobileNumber: student.fatherMobileNumber
+                fatherMobileNumber: student.fatherMobileNumber,
               };
             }
           });
@@ -130,10 +130,15 @@ const sendAttendanceMessages = async () => {
   }
 
   console.log("Attendance messages sent.");
+
+  // Now, establish the MongoDB connection after sending messages
+  mongoose
+    .connect("mongodb+srv://tkrcet:abc1234@cluster0.y4apc.mongodb.net/tkrcet")
+    .then(() => console.log("MongoDB connected successfully"))
+    .catch((error) => console.error("MongoDB connection failed:", error.message));
 };
 
 // Send SMS notifications immediately
-    sendAttendanceMessages();
-  
+sendAttendanceMessages();
 
 console.log("Attendance SMS service running...");
