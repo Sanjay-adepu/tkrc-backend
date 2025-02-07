@@ -43,7 +43,7 @@ router.delete("/:id", deleteFaculty);
 router.get("/:id/timetable", getFacultyTimetable);
 router.put("/:id/timetable", updateFacultyTimetable);
 router.post("/login", loginFaculty);
-router.get(":/department",getFacultiesByDepartment);
+router.get("/department",getFacultiesByDepartment);
 router.get(
   "/:facultyId/unique",
 getFacultyUniqueCombinationsFor7Days
