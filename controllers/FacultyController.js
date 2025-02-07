@@ -407,7 +407,22 @@ const getFacultiesByDepartment = async (req, res) => {
     res.status(500).json({ message: "Error fetching faculties", error: error.message });
   }
 };
+const deleteFacultyByFacultyId = async (req, res) => {
+  try {
+    const { facultyId } = req.params;
 
+    const deletedFaculty = await Faculty.findOneAndDelete({ facultyId });
+
+    if (!deletedFaculty) {
+      return res.status(404).json({ message: "Faculty not found" });
+    }
+
+    res.status(200).json({ message: "Faculty deleted successfully", faculty: deletedFaculty });
+  } catch (error) {
+    console.error("Error in deleteFacultyByFacultyId:", error.message);
+    res.status(500).json({ message: "Error deleting faculty", error: error.message });
+  }
+};
 
 module.exports = {
   
@@ -422,5 +437,6 @@ module.exports = {
     getFacultyUniqueCombinationsFor7Days,
     getExactPeriodsForSubject,
       getFacultiesByDepartment,
+       deleteFacultyByFacultyId,
  getTodayTimetableByFacultyId
 };
