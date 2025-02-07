@@ -29,6 +29,7 @@ getTodayTimetableByFacultyId,
  getFacultiesByDepartment,
  getFacultyUniqueCombinationsFor7Days,
   loginFaculty,
+ deleteFacultyByFacultyId
 } = require("../controllers/FacultyController");
 
 const router = express.Router();
@@ -48,6 +49,9 @@ router.get(
   "/:facultyId/unique",
 getFacultyUniqueCombinationsFor7Days
 );
+
+router.delete("/delete/:facultyId", deleteFacultyByFacultyId);
+
 // New route to get periods for a subject
 router.get(
   "/:facultyId/:department/:section/:subject",
