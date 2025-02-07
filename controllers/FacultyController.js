@@ -401,7 +401,8 @@ const getFacultiesByDepartment = async (req, res) => {
       return res.status(400).json({ message: "Department is required" });
     }
 
-    const faculties = await Faculty.find({ department });
+    // Ensure the department is treated as a string filter, not an ObjectId
+    const faculties = await Faculty.find({ department: department });
 
     if (faculties.length === 0) {
       return res.status(404).json({ message: "No faculty members found for this department" });
