@@ -391,6 +391,32 @@ const getExactPeriodsForSubject= async (req, res) => {
     });
   }
 };
+const getFacultiesByDepartment = async (req, res) => {
+  try {
+    const { department } = req.body;
+
+    if (!department) {
+      return res.status(400).json({ message: "Department is required" });
+    }
+
+    // Fetch faculties based on the provided department
+    const faculties = await Faculty.find({ department });
+
+    if (faculties.length === 0) {
+      return res.status(404).json({ message: "No faculties found for this department" });
+    }
+
+    res.status(200).json({ faculties });
+  } catch (error) {
+    console.error("Error fetching faculties by department:", error.message);
+    res.status(500).json({
+      message: "Error fetching faculties",
+      error: error.message,
+    });
+  }
+};
+
+
 
 module.exports = {
   
@@ -404,5 +430,6 @@ module.exports = {
   loginFaculty,
     getFacultyUniqueCombinationsFor7Days,
     getExactPeriodsForSubject,
+      getFacultiesByDepartment,
  getTodayTimetableByFacultyId
 };
