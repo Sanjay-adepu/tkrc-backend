@@ -5,16 +5,17 @@ const path = require("path");
 
 const addFaculty = async (req, res) => {  
   try {
-    const { name, facultyId, role, department, subject, designation, password, timetable } = req.body;
+    const { 
+      name, facultyId, role, department, subject, designation, password, 
+      timetable, qualification, experience, areaOfInterest, jntuId 
+    } = req.body;
 
-    if (!name || !facultyId || !role || !department || !subject || !designation || !password || !timetable) {
+    if (!name || !facultyId || !role || !department || !subject || !designation || !password || 
+        !timetable || !qualification || !experience || !areaOfInterest || !jntuId) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    // Hash the password for security
     const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Get the image file URL if provided
     const imagePath = req.file ? req.file.path : null;
 
     let parsedTimetable;
@@ -28,14 +29,9 @@ const addFaculty = async (req, res) => {
     }
 
     const newFaculty = new Faculty({
-      name,
-      facultyId,
-      role,
-      department,
-      subject, // Added subject field
-      designation, // Added designation field
-      password: hashedPassword,
-      timetable: parsedTimetable,
+      name, facultyId, role, department, subject, designation, 
+      password: hashedPassword, timetable: parsedTimetable, 
+      qualification, experience, areaOfInterest: areaOfInterest.split(","), jntuId,
       image: imagePath,
     });
 
@@ -47,7 +43,6 @@ const addFaculty = async (req, res) => {
     res.status(500).json({ message: "Error adding faculty", error: error.message });
   }
 };
-
 const getFacultyUniqueCombinationsFor7Days = async (req, res) => {
   try {
     const { facultyId } = req.params;
@@ -145,25 +140,23 @@ const getTodayTimetableByFacultyId = async (req, res) => {
 const updateFaculty = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, facultyId, role, department, password, timetable } = req.body;
+    const { 
+      name, facultyId, role, department, subject, designation, password, 
+      timetable, qualification, experience, areaOfInterest, jntuId 
+    } = req.body;
 
-    // Get the image file URL if provided
     const imagePath = req.file ? req.file.path : null;
 
     let updatedData = {
-      name,
-      facultyId,
-      role,
-      department,
-      timetable,
+      name, facultyId, role, department, subject, designation, 
+      qualification, experience, areaOfInterest: areaOfInterest ? areaOfInterest.split(",") : undefined, jntuId,
+      timetable
     };
 
-    // Hash the password if provided
     if (password) {
       updatedData.password = await bcrypt.hash(password, 10);
     }
 
-    // Include the image path if provided
     if (imagePath) {
       updatedData.image = imagePath;
     }
