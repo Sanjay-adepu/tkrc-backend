@@ -504,8 +504,8 @@ const checkEditPermission = async (req, res) => {
   try {
     const { facultyId, year, department, section } = req.query;
     const now = new Date();
-    
-    // Extract only the date part (YYYY-MM-DD)
+
+    // Extract only the date part (YYYY-MM-DD) for proper comparison
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
     if (!facultyId || !year || !department || !section) {
@@ -514,6 +514,11 @@ const checkEditPermission = async (req, res) => {
 
     console.log("Checking permission for:", { facultyId, year, department, section, today, now });
 
+    // Log stored data for debugging
+    const allPermissions = await EditPermission.find({});
+    console.log("Stored permissions:", allPermissions);
+
+    // Find a matching record in the database
     const permission = await EditPermission.findOne({
       facultyId,
       year,
@@ -536,7 +541,6 @@ const checkEditPermission = async (req, res) => {
     res.status(500).json({ message: "An error occurred", error: error.message });
   }
 };
-
 module.exports = {
   markAttendance,
   fetchAttendance,
