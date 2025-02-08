@@ -1,6 +1,5 @@
 const Attendance = require("../models/studentAttendance");
  const Year = require("../models/studentSection");
-// Mark Attendance or Edit Attendance
 const EditPermission = require("../models/editPermission");
 
 // Grant Edit Permission (Admin Only)
@@ -12,9 +11,8 @@ const grantEditPermission = async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    // Create a new permission record
     const permission = new EditPermission({
-      facultyId,
+      facultyId, // Store as string
       year,
       department,
       section,
@@ -31,12 +29,11 @@ const grantEditPermission = async (req, res) => {
   }
 };
 
-const markAttendance = async (req, res) => {
+  const markAttendance = async (req, res) => {
   try {
     const { date, periods, subject, topic, remarks, year, department, section, attendance, editing } = req.body;
-    const facultyId = req.user.id; // Assume faculty ID is extracted from the authenticated user
+    const facultyId = req.user.facultyId; // Use facultyId as a string
 
-    // Check if the faculty has permission to edit this record
     if (editing) {
       const now = new Date();
       const permission = await EditPermission.findOne({
@@ -54,47 +51,32 @@ const markAttendance = async (req, res) => {
       }
     }
 
-    // Validate periods
-    if (!Array.isArray(periods) || periods.some((p) => typeof p !== "number" || p === null || p === undefined)) {
-      return res.status(400).json({ message: "Periods must be an array of valid numbers" });
-    }
+    const formattedAttendance = attendance.map(({ rollNumber, name, status }) => ({
+      rollNumber,
+      name,
+      status: status.toLowerCase(),
+    }));
 
-    // Format attendance
-    const formattedAttendance = attendance.map(({ rollNumber, name, status }) => {
-      if (!rollNumber || !name || !status) {
-        throw new Error("Each attendance entry must include rollNumber, name, and status.");
-      }
-      if (!["present", "absent"].includes(status.toLowerCase())) {
-        throw new Error(`Invalid status for rollNumber ${rollNumber}. Must be 'present' or 'absent'.`);
-      }
-      return { rollNumber, name, status: status.toLowerCase() };
-    });
-
-    // Fetch marked periods for the given date, year, department, and section
     const markedPeriods = await Attendance.find({ date, year, department, section }).select("period");
     const markedPeriodNumbers = markedPeriods.map((record) => record.period);
 
     if (editing) {
-      // Ensure all provided periods exist for editing
       const invalidPeriods = periods.filter((p) => !markedPeriodNumbers.includes(p));
       if (invalidPeriods.length > 0) {
         return res.status(400).json({ message: `Invalid periods provided for editing: ${invalidPeriods.join(", ")}` });
       }
     } else {
-      // Prevent marking attendance for already marked periods
       const duplicatePeriods = periods.filter((p) => markedPeriodNumbers.includes(p));
       if (duplicatePeriods.length > 0) {
         return res.status(400).json({ message: `Periods already marked: ${duplicatePeriods.join(", ")}` });
       }
     }
 
-    // Process attendance for each period
     const attendanceResponses = [];
     for (const period of periods) {
       const existingAttendance = await Attendance.findOne({ date, period, year, department, section });
 
       if (existingAttendance) {
-        // Update existing attendance
         existingAttendance.subject = subject;
         existingAttendance.topic = topic;
         existingAttendance.remarks = remarks;
@@ -103,7 +85,6 @@ const markAttendance = async (req, res) => {
         const updatedAttendance = await existingAttendance.save();
         attendanceResponses.push({ period, record: updatedAttendance, status: "updated" });
       } else {
-        // Create new attendance
         const newAttendance = new Attendance({
           date,
           period,
@@ -124,7 +105,7 @@ const markAttendance = async (req, res) => {
     res.status(201).json({
       message: "Attendance processed successfully for all selected periods!",
       records: attendanceResponses,
-      markedPeriods: markedPeriodNumbers, // Return marked periods for client-side validation
+      markedPeriods: markedPeriodNumbers,
     });
   } catch (error) {
     console.error("Error processing attendance:", error.message || error);
@@ -519,10 +500,11 @@ const getSectionOverallAttendance = async (req, res) => {
     res.status(500).json({ message: "An error occurred", error: error.message });
   }
 };
+
 const checkEditPermission = async (req, res) => {
   try {
     const { year, department, section, date } = req.query;
-    const facultyId = req.user.id; // Assume authenticated user ID
+    const facultyId = req.user.facultyId; // Extract facultyId from the request
 
     const now = new Date();
     const permission = await EditPermission.findOne({
@@ -536,7 +518,7 @@ const checkEditPermission = async (req, res) => {
     });
 
     res.status(200).json({
-      canEdit: !!permission, // true if permission exists, false otherwise
+      canEdit: !!permission,
       permissionDetails: permission || null,
     });
   } catch (error) {
