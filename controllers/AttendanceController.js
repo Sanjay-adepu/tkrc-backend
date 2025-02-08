@@ -16,21 +16,19 @@ const grantEditPermission = async (req, res) => {
       year,
       department,
       section,
-      startDate,
-      endDate,
+      startDate: new Date(startDate), // Convert to Date
+      endDate: new Date(endDate), // Convert to Date
       startTime: new Date(startTime),
       endTime: new Date(endTime),
     });
 
     await newPermission.save();
-
     res.status(201).json({ message: "Edit permission granted successfully" });
   } catch (error) {
     console.error("Error granting edit permission:", error.message);
     res.status(500).json({ message: "Error granting edit permission", error: error.message });
   }
 };
-
 
 const markAttendance = async (req, res) => {  
   try {  
@@ -505,22 +503,21 @@ const getSectionOverallAttendance = async (req, res) => {
 const checkEditPermission = async (req, res) => {
   try {
     const { facultyId, year, department, section } = req.query;
-    const currentDate = new Date().toISOString().split("T")[0]; // Get today's date (YYYY-MM-DD)
     const now = new Date();
 
     if (!facultyId || !year || !department || !section) {
       return res.status(400).json({ message: "Missing required parameters" });
     }
 
-    console.log("Checking permission for:", { facultyId, year, department, section, currentDate, now });
+    console.log("Checking permission for:", { facultyId, year, department, section, now });
 
     const permission = await EditPermission.findOne({
       facultyId,
       year,
       department,
       section,
-      startDate: { $lte: currentDate.toString() }, // Convert to string for comparison
-      endDate: { $gte: currentDate.toString() },
+      startDate: { $lte: now }, // Compare as Date
+      endDate: { $gte: now },
       startTime: { $lte: now },
       endTime: { $gte: now },
     });
@@ -536,7 +533,6 @@ const checkEditPermission = async (req, res) => {
     res.status(500).json({ message: "An error occurred", error: error.message });
   }
 };
-
 
 module.exports = {
   markAttendance,
