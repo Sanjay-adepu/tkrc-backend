@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const editPermissionSchema = new mongoose.Schema({
-  facultyId: { type: mongoose.Schema.Types.ObjectId, ref: "Faculty", required: true },
+  facultyId: { type: String, required: true }, // Changed to String
   year: { type: String, required: true },
   department: { type: String, required: true },
   section: { type: String, required: true },
