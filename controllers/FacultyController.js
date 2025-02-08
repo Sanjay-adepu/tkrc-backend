@@ -487,5 +487,6 @@ module.exports = {
       getFacultiesByDepartment,
        deleteFacultyByFacultyId,
        getFacultyByFacultyId,
+       getTimetableByFacultyId,
  getTodayTimetableByFacultyId
 };
