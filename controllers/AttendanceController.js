@@ -1,7 +1,7 @@
 const Attendance = require("../models/studentAttendance");
  const Year = require("../models/studentSection");
 const EditPermission = require("../models/editPermission");
-
+    
 // Grant Edit Permission (Admin Only)
 const grantEditPermission = async (req, res) => {
   try {
