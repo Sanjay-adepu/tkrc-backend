@@ -413,22 +413,32 @@ const getStudentByRollNumber = async (req, res) => {
 // Delete a student from a section by roll number
 const deleteStudentByRollNumber = async (req, res) => {
   try {
-    const { yearId, departmentId, sectionId, rollNumber } = req.params;
+    const { rollNumber } = req.params;
 
-    const year = await Year.findOne({ year: yearId });
-    if (!year) return res.status(404).json({ message: "Year not found" });
+    const years = await Year.find(); // Fetch all years
 
-    const department = year.departments.find((dept) => dept.name === departmentId);
-    if (!department) return res.status(404).json({ message: "Department not found" });
+    let studentDeleted = false;
 
-    const section = department.sections.find((sec) => sec.name === sectionId);
-    if (!section) return res.status(404).json({ message: "Section not found" });
+    for (const year of years) {
+      for (const department of year.departments) {
+        for (const section of department.sections) {
+          const studentIndex = section.students.findIndex(student => student.rollNumber === rollNumber);
 
-    const studentIndex = section.students.findIndex((student) => student.rollNumber === rollNumber);
-    if (studentIndex === -1) return res.status(404).json({ message: "Student not found" });
+          if (studentIndex !== -1) {
+            section.students.splice(studentIndex, 1); // Remove student
+            await year.save(); // Save the modified year document
+            studentDeleted = true;
+            break;
+          }
+        }
+        if (studentDeleted) break;
+      }
+      if (studentDeleted) break;
+    }
 
-    section.students.splice(studentIndex, 1); // Remove the student
-    await year.save();
+    if (!studentDeleted) {
+      return res.status(404).json({ message: "Student not found" });
+    }
 
     res.status(200).json({ message: "Student deleted successfully" });
   } catch (error) {
