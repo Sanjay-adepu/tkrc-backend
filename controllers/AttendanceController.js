@@ -519,7 +519,31 @@ const getSectionOverallAttendance = async (req, res) => {
     res.status(500).json({ message: "An error occurred", error: error.message });
   }
 };
+const checkEditPermission = async (req, res) => {
+  try {
+    const { year, department, section, date } = req.query;
+    const facultyId = req.user.id; // Assume authenticated user ID
 
+    const now = new Date();
+    const permission = await EditPermission.findOne({
+      facultyId,
+      year,
+      department,
+      section,
+      date,
+      startTime: { $lte: now },
+      endTime: { $gte: now },
+    });
+
+    res.status(200).json({
+      canEdit: !!permission, // true if permission exists, false otherwise
+      permissionDetails: permission || null,
+    });
+  } catch (error) {
+    console.error("Error checking edit permission:", error.message);
+    res.status(500).json({ message: "An error occurred", error: error.message });
+  }
+};
 module.exports = {
   markAttendance,
   fetchAttendance,
@@ -530,6 +554,7 @@ module.exports = {
  getStudentAttendance,
  getSectionOverallAttendance,
  grantEditPermission,
+ checkEditPermission,
   fetchAttendanceByFilters
 };
          
