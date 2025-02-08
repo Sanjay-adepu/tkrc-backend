@@ -29,6 +29,7 @@ getTodayTimetableByFacultyId,
  getFacultiesByDepartment,
  getFacultyUniqueCombinationsFor7Days,
   loginFaculty,
+ getFacultyByFacultyId,
  deleteFacultyByFacultyId
 } = require("../controllers/FacultyController");
 
@@ -49,6 +50,7 @@ router.get(
   "/:facultyId/unique",
 getFacultyUniqueCombinationsFor7Days
 );
+router.get(':/facultyId',getFacultyByFacultyId);
 
 router.delete("/delete/:facultyId", deleteFacultyByFacultyId);
 
