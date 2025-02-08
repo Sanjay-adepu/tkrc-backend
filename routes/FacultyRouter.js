@@ -59,6 +59,6 @@ router.get(
   "/:facultyId/:department/:section/:subject",
   getExactPeriodsForSubject
 );
-
+router.get("/:facultyId/timetable", getTimetableByFacultyId);
 
 module.exports = router;
