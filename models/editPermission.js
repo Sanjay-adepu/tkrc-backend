@@ -5,11 +5,10 @@ const editPermissionSchema = new mongoose.Schema({
   year: { type: String, required: true },
   department: { type: String, required: true },
   section: { type: String, required: true },
-  startDate: { type: Date, required: true },
-  endDate: { type: Date, required: true },
+  startDate: { type: Date, required: true }, // ✅ Change to Date
+  endDate: { type: Date, required: true }, // ✅ Change to Date
   startTime: { type: Date, required: true },
   endTime: { type: Date, required: true },
 });
 
-const EditPermission = mongoose.model("EditPermission", editPermissionSchema);
-module.exports = EditPermission;
+module.exports = mongoose.model("EditPermission", editPermissionSchema);
