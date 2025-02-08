@@ -43,7 +43,7 @@ router.post('/login',studentController.loginStudent);
 
 
 // Delete a student by roll number
-router.delete('/:yearId/:departmentId/:sectionId/students/:rollNumber', studentController.deleteStudentByRollNumber);
+router.delete('/students/:rollNumber', studentController.deleteStudentByRollNumber);
 
 // Delete all students from a section
 router.delete('/:yearId/:departmentId/:sectionId/students', studentController.deleteAllStudentsInSection);
