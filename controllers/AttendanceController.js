@@ -503,12 +503,17 @@ const getSectionOverallAttendance = async (req, res) => {
 
 const checkEditPermission = async (req, res) => {
   try {
-    const { year, department, section, date } = req.query;
-    const facultyId = req.user.facultyId; // Extract facultyId from the request
+    const { facultyId, year, department, section, date } = req.query; // Extract from query parameters
+
+    if (!facultyId || !year || !department || !section || !date) {
+      return res.status(400).json({ message: "Missing required parameters" });
+    }
 
     const now = new Date();
+    console.log("Checking permission for:", { facultyId, year, department, section, date, now });
+
     const permission = await EditPermission.findOne({
-      facultyId,
+      facultyId, // Ensure facultyId is stored as a string in DB
       year,
       department,
       section,
@@ -516,6 +521,8 @@ const checkEditPermission = async (req, res) => {
       startTime: { $lte: now },
       endTime: { $gte: now },
     });
+
+    console.log("Fetched permission:", permission);
 
     res.status(200).json({
       canEdit: !!permission,
@@ -526,6 +533,7 @@ const checkEditPermission = async (req, res) => {
     res.status(500).json({ message: "An error occurred", error: error.message });
   }
 };
+
 module.exports = {
   markAttendance,
   fetchAttendance,
