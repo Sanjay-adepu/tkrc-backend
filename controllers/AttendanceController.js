@@ -16,8 +16,8 @@ const grantEditPermission = async (req, res) => {
       year,
       department,
       section,
-      startDate: new Date(startDate), // Convert to Date
-      endDate: new Date(endDate), // Convert to Date
+      startDate: new Date(startDate), // ✅ Convert to Date
+      endDate: new Date(endDate), // ✅ Convert to Date
       startTime: new Date(startTime),
       endTime: new Date(endTime),
     });
@@ -516,8 +516,8 @@ const checkEditPermission = async (req, res) => {
       year,
       department,
       section,
-      startDate: { $lte: now }, // Compare as Date
-      endDate: { $gte: now },
+      startDate: { $lte: now }, // ✅ Works correctly because startDate is now a Date
+      endDate: { $gte: now },   // ✅ Works correctly because endDate is now a Date
       startTime: { $lte: now },
       endTime: { $gte: now },
     });
