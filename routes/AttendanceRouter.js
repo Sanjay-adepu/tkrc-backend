@@ -8,6 +8,8 @@ const {
   getMarkedSubjects,
  getStudentAttendance, 
   getSectionOverallAttendance,
+  grantEditPermission,
+  checkEditPermission,
    fetchAttendanceByFilters
 } = require("../controllers/AttendanceController");
 
@@ -32,6 +34,8 @@ router.get("/date",fetchAttendanceByDate)
  * @desc    Check if attendance is already marked for a specific date, year, department, and section
  * @access  Public
  */
+router.post("/grantEditPermission", grantEditPermission);
+router.get("/checkEditPermission", checkEditPermission);
 router.get("/check", checkAttendance);
 router.get("/filters", fetchAttendanceByFilters);
 // Route to fetch attendance by subject and periods
