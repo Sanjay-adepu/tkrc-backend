@@ -397,6 +397,7 @@ const getStudentAttendance = async (req, res) => {
   }
 };
 
+
 const getSectionOverallAttendance = async (req, res) => {
   try {
     const { year, department, section } = req.query;
@@ -405,41 +406,55 @@ const getSectionOverallAttendance = async (req, res) => {
       return res.status(400).json({ message: "Year, department, and section are required" });
     }
 
-    console.log("Received query:", { year, department, section });
+    // Fetch the Year data
+    const yearData = await Year.findOne({ year }).lean();
+    if (!yearData) {
+      return res.status(404).json({ message: "No year data found" });
+    }
 
-    // Fetch students
-    const students = await Student.find({ year, department, section }).select("rollNumber name");
-    console.log("Students found:", students);
+    // Extract the correct department
+    const departmentData = yearData.departments.find(dep => dep.name === department);
+    if (!departmentData) {
+      return res.status(404).json({ message: "No department found for the given year" });
+    }
 
+    // Extract the correct section
+    const sectionData = departmentData.sections.find(sec => sec.name === section);
+    if (!sectionData) {
+      return res.status(404).json({ message: "No section found for the given department" });
+    }
+
+    // Get the list of students
+    const students = sectionData.students.map(({ rollNumber, name }) => ({ rollNumber, name }));
     if (!students.length) {
       return res.status(404).json({ message: "No students found for the given section" });
     }
 
-    // Fetch attendance records
+    // Fetch all attendance records for the section
     const attendanceRecords = await Attendance.find({ year, department, section }).select("attendance");
-    console.log("Attendance records found:", attendanceRecords);
-
     if (!attendanceRecords.length) {
       return res.status(404).json({ message: "No attendance records found for the given section" });
     }
 
-    // Process attendance data
+    // Initialize a map to store each student's attendance summary
     const studentAttendanceMap = {};
     students.forEach(({ rollNumber, name }) => {
       studentAttendanceMap[rollNumber] = { rollNumber, name, totalClassesConducted: 0, totalClassesAttended: 0 };
     });
 
+    // Process all attendance records
     attendanceRecords.forEach(({ attendance }) => {
       attendance.forEach(({ rollNumber, status }) => {
         if (studentAttendanceMap[rollNumber]) {
-          studentAttendanceMap[rollNumber].totalClassesConducted += 1;
+          studentAttendanceMap[rollNumber].totalClassesConducted += 1; // Increment total classes
           if (status === "present") {
-            studentAttendanceMap[rollNumber].totalClassesAttended += 1;
+            studentAttendanceMap[rollNumber].totalClassesAttended += 1; // Increment attended classes
           }
         }
       });
     });
 
+    // Compute attendance percentage for each student
     const attendanceSummary = Object.values(studentAttendanceMap).map(({ rollNumber, name, totalClassesConducted, totalClassesAttended }) => ({
       rollNumber,
       name,
@@ -456,7 +471,7 @@ const getSectionOverallAttendance = async (req, res) => {
       attendanceSummary,
     });
   } catch (error) {
-    console.error("Error:", error);
+    console.error("Error calculating section overall attendance:", error);
     res.status(500).json({ message: "An error occurred", error: error.message });
   }
 };
