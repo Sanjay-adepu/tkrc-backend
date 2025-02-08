@@ -50,7 +50,7 @@ router.get(
   "/:facultyId/unique",
 getFacultyUniqueCombinationsFor7Days
 );
-router.get(':/facultyId',getFacultyByFacultyId);
+router.get('/facultyId/:facultyId',getFacultyByFacultyId);
 
 router.delete("/delete/:facultyId", deleteFacultyByFacultyId);
 
