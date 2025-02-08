@@ -5,30 +5,31 @@ const EditPermission = require("../models/editPermission");
 // Grant Edit Permission (Admin Only)
 const grantEditPermission = async (req, res) => {
   try {
-    const { facultyId, year, department, section, date, startTime, endTime } = req.body;
+    const { facultyId, year, department, section, startDate, endDate, startTime, endTime } = req.body;
 
-    if (!facultyId || !year || !department || !section || !date || !startTime || !endTime) {
-      return res.status(400).json({ message: "All fields are required" });
+    if (!facultyId || !year || !department || !section || !startDate || !endDate || !startTime || !endTime) {
+      return res.status(400).json({ message: "Missing required fields" });
     }
 
-    const permission = new EditPermission({
-      facultyId, // Store as string
+    const newPermission = new EditPermission({
+      facultyId,
       year,
       department,
       section,
-      date,
+      startDate,
+      endDate,
       startTime: new Date(startTime),
       endTime: new Date(endTime),
     });
 
-    await permission.save();
+    await newPermission.save();
+
     res.status(201).json({ message: "Edit permission granted successfully" });
   } catch (error) {
     console.error("Error granting edit permission:", error.message);
     res.status(500).json({ message: "Error granting edit permission", error: error.message });
   }
 };
-
 
 
 const markAttendance = async (req, res) => {  
@@ -503,21 +504,23 @@ const getSectionOverallAttendance = async (req, res) => {
 
 const checkEditPermission = async (req, res) => {
   try {
-    const { facultyId, year, department, section, date } = req.query; // Extract from query parameters
+    const { facultyId, year, department, section } = req.query;
+    const currentDate = new Date().toISOString().split("T")[0]; // Get today's date (YYYY-MM-DD)
+    const now = new Date();
 
-    if (!facultyId || !year || !department || !section || !date) {
+    if (!facultyId || !year || !department || !section) {
       return res.status(400).json({ message: "Missing required parameters" });
     }
 
-    const now = new Date();
-    console.log("Checking permission for:", { facultyId, year, department, section, date, now });
+    console.log("Checking permission for:", { facultyId, year, department, section, currentDate, now });
 
     const permission = await EditPermission.findOne({
-      facultyId, // Ensure facultyId is stored as a string in DB
+      facultyId,
       year,
       department,
       section,
-      date,
+      startDate: { $lte: currentDate }, // Check if the current date is within range
+      endDate: { $gte: currentDate },
       startTime: { $lte: now },
       endTime: { $gte: now },
     });
@@ -533,6 +536,7 @@ const checkEditPermission = async (req, res) => {
     res.status(500).json({ message: "An error occurred", error: error.message });
   }
 };
+
 
 module.exports = {
   markAttendance,
