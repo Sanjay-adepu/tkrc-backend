@@ -519,8 +519,8 @@ const checkEditPermission = async (req, res) => {
       year,
       department,
       section,
-      startDate: { $lte: currentDate }, // Check if the current date is within range
-      endDate: { $gte: currentDate },
+      startDate: { $lte: currentDate.toString() }, // Convert to string for comparison
+      endDate: { $gte: currentDate.toString() },
       startTime: { $lte: now },
       endTime: { $gte: now },
     });
