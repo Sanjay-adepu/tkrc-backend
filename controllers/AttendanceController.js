@@ -1,9 +1,58 @@
 const Attendance = require("../models/studentAttendance");
  const Year = require("../models/studentSection");
 // Mark Attendance or Edit Attendance
+const EditPermission = require("../models/editPermission");
+
+// Grant Edit Permission (Admin Only)
+const grantEditPermission = async (req, res) => {
+  try {
+    const { facultyId, year, department, section, date, startTime, endTime } = req.body;
+
+    if (!facultyId || !year || !department || !section || !date || !startTime || !endTime) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    // Create a new permission record
+    const permission = new EditPermission({
+      facultyId,
+      year,
+      department,
+      section,
+      date,
+      startTime: new Date(startTime),
+      endTime: new Date(endTime),
+    });
+
+    await permission.save();
+    res.status(201).json({ message: "Edit permission granted successfully" });
+  } catch (error) {
+    console.error("Error granting edit permission:", error.message);
+    res.status(500).json({ message: "Error granting edit permission", error: error.message });
+  }
+};
+
 const markAttendance = async (req, res) => {
   try {
     const { date, periods, subject, topic, remarks, year, department, section, attendance, editing } = req.body;
+    const facultyId = req.user.id; // Assume faculty ID is extracted from the authenticated user
+
+    // Check if the faculty has permission to edit this record
+    if (editing) {
+      const now = new Date();
+      const permission = await EditPermission.findOne({
+        facultyId,
+        year,
+        department,
+        section,
+        date,
+        startTime: { $lte: now },
+        endTime: { $gte: now },
+      });
+
+      if (!permission) {
+        return res.status(403).json({ message: "You don't have permission to edit this attendance" });
+      }
+    }
 
     // Validate periods
     if (!Array.isArray(periods) || periods.some((p) => typeof p !== "number" || p === null || p === undefined)) {
@@ -85,11 +134,6 @@ const markAttendance = async (req, res) => {
     });
   }
 };
-
-
-
-
-
 
 // Fetch Attendance Records by Date
 const fetchAttendanceByDate = async (req, res) => {
@@ -485,6 +529,7 @@ module.exports = {
   getMarkedSubjects,
  getStudentAttendance,
  getSectionOverallAttendance,
+ grantEditPermission,
   fetchAttendanceByFilters
 };
          
