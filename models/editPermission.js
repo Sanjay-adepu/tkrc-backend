@@ -1,3 +1,6 @@
+
+const mongoose = require("mongoose");
+
 const editPermissionSchema = new mongoose.Schema({
   facultyId: { type: String, required: true },
   year: { type: String, required: true },
