@@ -16,8 +16,8 @@ const grantEditPermission = async (req, res) => {
       year,
       department,
       section,
-      startDate: new Date(startDate), // ✅ Convert to Date
-      endDate: new Date(endDate), // ✅ Convert to Date
+      startDate: new Date(startDate), // Convert to Date
+      endDate: new Date(endDate), // Convert to Date
       startTime: new Date(startTime),
       endTime: new Date(endTime),
     });
@@ -504,20 +504,23 @@ const checkEditPermission = async (req, res) => {
   try {
     const { facultyId, year, department, section } = req.query;
     const now = new Date();
+    
+    // Extract only the date part (YYYY-MM-DD)
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
     if (!facultyId || !year || !department || !section) {
       return res.status(400).json({ message: "Missing required parameters" });
     }
 
-    console.log("Checking permission for:", { facultyId, year, department, section, now });
+    console.log("Checking permission for:", { facultyId, year, department, section, today, now });
 
     const permission = await EditPermission.findOne({
       facultyId,
       year,
       department,
       section,
-      startDate: { $lte: now }, // ✅ Works correctly because startDate is now a Date
-      endDate: { $gte: now },   // ✅ Works correctly because endDate is now a Date
+      startDate: { $lte: today }, // ✅ Only compare date part
+      endDate: { $gte: today },
       startTime: { $lte: now },
       endTime: { $gte: now },
     });
@@ -547,4 +550,5 @@ module.exports = {
  checkEditPermission,
   fetchAttendanceByFilters
 };
-         
+
+     
