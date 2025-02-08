@@ -442,6 +442,34 @@ const getFacultyByFacultyId = async (req, res) => {
       error: error.message,
     });
   }}
+const getTimetableByFacultyId = async (req, res) => {
+  try {
+    const { facultyId } = req.params;
+
+    // Find the faculty by facultyId
+    const faculty = await Faculty.findOne({ facultyId });
+
+    if (!faculty) {
+      return res.status(404).json({ message: "Faculty not found" });
+    }
+
+    // Return the timetable
+    res.status(200).json({
+      timetable: faculty.timetable,
+      facultyDetails: {
+        name: faculty.name,
+        department: faculty.department,
+        role: faculty.role,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching timetable by facultyId:", error.message);
+    res.status(500).json({
+      message: "Error fetching timetable",
+      error: error.message,
+    });
+  }
+};
 
 
 module.exports = {
