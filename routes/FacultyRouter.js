@@ -30,6 +30,7 @@ getTodayTimetableByFacultyId,
  getFacultyUniqueCombinationsFor7Days,
   loginFaculty,
  getFacultyByFacultyId,
+ getTimetableByFacultyId,
  deleteFacultyByFacultyId
 } = require("../controllers/FacultyController");
 
