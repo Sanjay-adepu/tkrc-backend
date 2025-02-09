@@ -514,18 +514,14 @@ const checkEditPermission = async (req, res) => {
 
     console.log("Checking permission for:", { facultyId, year, department, section, today, now });
 
-    // Log stored data for debugging
-    const allPermissions = await EditPermission.find({});
-    console.log("Stored permissions:", allPermissions);
-
     // Find a matching record in the database
     const permission = await EditPermission.findOne({
       facultyId,
       year,
       department,
       section,
-      startDate: { $lte: today }, // ✅ Only compare date part
-      endDate: { $gte: today },
+      startDate: { $lte: today }, // ✅ Compare as DATE ONLY (not time)
+      endDate: { $gte: today },   // ✅ Compare as DATE ONLY (not time)
       startTime: { $lte: now },
       endTime: { $gte: now },
     });
