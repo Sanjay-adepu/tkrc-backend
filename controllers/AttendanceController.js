@@ -521,8 +521,8 @@ const checkEditPermission = async (req, res) => {
       department,
       section,
       startDate: { $lte: today }, // ✅ Check if startDate is before or on today
-      endDate: { $gte: startDate }, // ✅ Allow checking for past dates
-      startTime: { $lte: now },  // ✅ Keep the time check for today
+      endDate: { $gte: today }, // ✅ Fix: Now properly checks if today is within the allowed range
+      startTime: { $lte: now },  
       endTime: { $gte: now },  
     });
 
