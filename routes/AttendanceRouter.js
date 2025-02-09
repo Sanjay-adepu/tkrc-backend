@@ -10,7 +10,7 @@ const {
   getSectionOverallAttendance,
   grantEditPermission,
   checkEditPermission,
-
+getStudentAttendanceWithSubjects,
   fetchAllEditPermissions,
   deleteEditPermission,
    fetchAttendanceByFilters
@@ -38,6 +38,8 @@ router.get("/date",fetchAttendanceByDate)
  * @access  Public
  */
 router.get('/edit-permissions', fetchAllEditPermissions);
+// Route to get student attendance with subjects
+router.get("/subjects/:studentId", getStudentAttendanceWithSubjects);
 
 router.delete('/permissions/:id', deleteEditPermission);
 
