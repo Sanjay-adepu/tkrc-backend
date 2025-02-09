@@ -461,7 +461,6 @@ const getMarkedSubjects = async (req, res) => {
   }
 };
 
-
 const getStudentAttendance = async (req, res) => {
   try {
     const { rollNumber } = req.query;
@@ -496,11 +495,16 @@ const getStudentAttendance = async (req, res) => {
         subjectSummary[subject].classesAttended += 1;
       }
 
-      // Daily summary
+      // Daily summary (Replacing "P" or "A" with Subject Name & Color)
       if (!dailySummary[date]) {
         dailySummary[date] = { periods: {}, total: 0, attended: 0 };
       }
-      dailySummary[date].periods[period] = studentAttendance.status === "present" ? "P" : "A";
+      
+      dailySummary[date].periods[period] = {
+        subject: subject,
+        color: studentAttendance.status === "present" ? "green" : "red"
+      };
+
       dailySummary[date].total += 1;
       if (studentAttendance.status === "present") {
         dailySummary[date].attended += 1;
@@ -528,7 +532,6 @@ const getStudentAttendance = async (req, res) => {
     });
   }
 };
-
 
 const getSectionOverallAttendance = async (req, res) => {
   try {
