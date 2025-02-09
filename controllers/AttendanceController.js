@@ -3,7 +3,6 @@ const Attendance = require("../models/studentAttendance");
 const EditPermission = require("../models/editPermission");
 
 // ✅ Check Edit Permission
-
 const checkEditPermission = async (req, res) => {
   try {
     const { facultyId, year, department, section, date } = req.query;
@@ -13,22 +12,30 @@ const checkEditPermission = async (req, res) => {
     }
 
     const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // YYYY-MM-DD
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // YYYY-MM-DD only
 
     // ✅ Use provided "date" (if any) OR default to "today"
     const targetDate = date ? new Date(date) : today;
 
-    console.log("Checking permission for:", { facultyId, year, department, section, targetDate, now });
+    // ✅ Ensure consistency by converting "now" to ISO format
+    const nowISO = now.toISOString();
+    
+    console.log("Checking permission for:", { 
+      facultyId, year, department, section, 
+      targetDate: targetDate.toISOString(), 
+      now: nowISO 
+    });
 
+    // ✅ Fetch permission matching the conditions
     const permission = await EditPermission.findOne({
       facultyId,
       year,
       department,
       section,
-      startDate: { $lte: targetDate }, // ✅ Check if the date being edited falls in range
-      endDate: { $gte: targetDate },  
-      startTime: { $lte: now }, 
-      endTime: { $gte: now },
+      startDate: { $lte: targetDate }, // Date being edited falls in range
+      endDate: { $gte: targetDate },
+      startTime: { $lte: nowISO }, // Current time is within the allowed edit window
+      endTime: { $gte: nowISO },
     });
 
     console.log("Fetched permission:", permission);
@@ -38,7 +45,7 @@ const checkEditPermission = async (req, res) => {
       permissionDetails: permission || null,
     });
   } catch (error) {
-    console.error("Error checking edit permission:", error.message);
+    console.error("Error checking edit permission:", error);
     res.status(500).json({ message: "An error occurred", error: error.message });
   }
 };
