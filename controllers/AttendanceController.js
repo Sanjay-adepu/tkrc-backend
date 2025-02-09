@@ -1,7 +1,38 @@
 const Attendance = require("../models/studentAttendance");
  const Year = require("../models/studentSection");
 const EditPermission = require("../models/editPermission");
- 
+
+
+const getStudentAttendanceWithSubjects = async (req, res) => {
+    try {
+        const { studentId } = req.params;
+
+        // Fetch attendance data for the student
+        const attendanceRecords = await Attendance.find({ studentId });
+
+        if (!attendanceRecords.length) {
+            return res.status(404).json({ message: "No attendance records found." });
+        }
+
+        // Format response with subject instead of P/A
+        const formattedAttendance = attendanceRecords.map(record => ({
+            date: record.date,
+            periods: record.periods.map(period => ({
+                period: period.periodNumber, 
+                subject: period.subject || "N/A",  // Ensure subject is available
+                status: period.isPresent ? "Present" : "Absent"
+            }))
+        }));
+
+        res.json({ studentId, attendance: formattedAttendance });
+    } catch (error) {
+        console.error("Error fetching attendance:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
+
+
 
 // Delete an edit permission
 const deleteEditPermission = async (req, res) => {
@@ -590,7 +621,7 @@ module.exports = {
  checkEditPermission,
  deleteEditPermission,
  fetchAllEditPermissions,
- 
+ getStudentAttendanceWithSubjects,
   fetchAttendanceByFilters
 };
 
