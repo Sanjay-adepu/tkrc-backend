@@ -1,8 +1,50 @@
 const Attendance = require("../models/studentAttendance");
  const Year = require("../models/studentSection");
 const EditPermission = require("../models/editPermission");
-    
-// Grant Edit Permission (Admin Only)
+
+// ✅ Check Edit Permission
+const checkEditPermission = async (req, res) => {
+  try {
+    const { facultyId, year, department, section, date } = req.query;
+
+    if (!facultyId || !year || !department || !section) {
+      return res.status(400).json({ message: "Missing required parameters" });
+    }
+
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // Get only the date part (YYYY-MM-DD)
+
+    console.log("Checking permission for:", { facultyId, year, department, section, today, now });
+
+    // Fetch all permissions for debugging
+    const allPermissions = await EditPermission.find({});
+    console.log("Stored permissions in DB:", allPermissions);
+
+    // ✅ Find permission in the database
+    const permission = await EditPermission.findOne({
+      facultyId,
+      year,
+      department,
+      section,
+      startDate: { $lte: today }, // Start date must be before or equal to today
+      endDate: { $gte: today },   // End date must be after or equal to today
+      startTime: { $lte: now },   // Check if current time is within allowed time
+      endTime: { $gte: now },
+    });
+
+    console.log("Fetched permission:", permission);
+
+    res.status(200).json({
+      canEdit: !!permission,
+      permissionDetails: permission || null,
+    });
+  } catch (error) {
+    console.error("Error checking edit permission:", error.message);
+    res.status(500).json({ message: "An error occurred", error: error.message });
+  }
+};
+
+// ✅ Grant Edit Permission (Admin Only)
 const grantEditPermission = async (req, res) => {
   try {
     const { facultyId, year, department, section, startDate, endDate, startTime, endTime } = req.body;
@@ -16,8 +58,8 @@ const grantEditPermission = async (req, res) => {
       year,
       department,
       section,
-      startDate: new Date(startDate), // Convert to Date
-      endDate: new Date(endDate), // Convert to Date
+      startDate: new Date(startDate),
+      endDate: new Date(endDate),
       startTime: new Date(startTime),
       endTime: new Date(endTime),
     });
@@ -29,6 +71,7 @@ const grantEditPermission = async (req, res) => {
     res.status(500).json({ message: "Error granting edit permission", error: error.message });
   }
 };
+
 
 const markAttendance = async (req, res) => {  
   try {  
@@ -501,41 +544,6 @@ const getSectionOverallAttendance = async (req, res) => {
 };
 
 
-
-const checkEditPermission = async (req, res) => {
-  try {
-    const { facultyId, year, department, section } = req.query;
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-    console.log("Checking permission for:", { facultyId, year, department, section, today, now });
-
-    // Fetch permission **without restricting to today's date**
-    const permission = await EditPermission.findOne({
-      facultyId,
-      year,
-      department,
-      section,
-      startDate: { $lte: today },  // ✅ Allow past start dates
-      endDate: { $gte: startDate }, // ✅ Allow checking past end dates
-      startTime: { $lte: now },
-      endTime: { $gte: now },
-    });
-
-    console.log("Fetched permission:", permission);
-
-    res.status(200).json({
-      canEdit: !!permission,
-      permissionDetails: permission || null,
-    });
-  } catch (error) {
-    console.error("Error checking edit permission:", error.message);
-    res.status(500).json({ message: "An error occurred", error: error.message });
-  }
-};
-
-
-
 module.exports = {
   markAttendance,
   fetchAttendance,
@@ -549,5 +557,6 @@ module.exports = {
  checkEditPermission,
   fetchAttendanceByFilters
 };
+
 
      
