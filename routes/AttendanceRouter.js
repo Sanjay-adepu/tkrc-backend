@@ -39,7 +39,7 @@ router.get("/date",fetchAttendanceByDate)
  */
 router.get('/edit-permissions', fetchAllEditPermissions);
 
-router.delete('/edit-permissions/:id', deleteEditPermission);
+router.delete('/permissions/:id', deleteEditPermission);
 
 // Add the DELETE route for deleting permissions
 router.delete('/delete-edit-permission', deleteEditPermission);
