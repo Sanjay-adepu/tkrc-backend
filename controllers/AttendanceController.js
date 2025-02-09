@@ -3,7 +3,21 @@ const Attendance = require("../models/studentAttendance");
 const EditPermission = require("../models/editPermission");
  
 
+// Delete an edit permission
+const deleteEditPermission = async (req, res) => {
+    try {
+        const { id } = req.params; // Extract ID from request parameters
+        const deletedPermission = await EditPermission.findByIdAndDelete(id);
 
+        if (!deletedPermission) {
+            return res.status(404).json({ success: false, message: 'Permission not found' });
+        }
+
+        res.status(200).json({ success: true, message: 'Permission deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Error deleting permission', error: error.message });
+    }
+};
 
 // Fetch all granted edit permissions
 const fetchAllEditPermissions = async (req, res) => {
