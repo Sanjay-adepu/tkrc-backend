@@ -503,49 +503,27 @@ const getSectionOverallAttendance = async (req, res) => {
 const checkEditPermission = async (req, res) => {
   try {
     const { facultyId, year, department, section } = req.query;
+    const now = new Date();
+
+    // Extract only the date part (YYYY-MM-DD) for proper comparison
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
     if (!facultyId || !year || !department || !section) {
       return res.status(400).json({ message: "Missing required parameters" });
     }
 
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    console.log("Checking permission for:", { facultyId, year, department, section, today, now });
 
-    console.log("Checking permission for:", {
-      facultyId,
-      year,
-      department,
-      section,
-      today,
-      now,
-    });
-
-    // Fetch and log all stored permissions for debugging
-    const allPermissions = await EditPermission.find({});
-    console.log("Stored permissions in DB:");
-    allPermissions.forEach((perm) => {
-      console.log({
-        facultyId: perm.facultyId,
-        year: perm.year,
-        department: perm.department,
-        section: perm.section,
-        startDate: perm.startDate.toISOString(),
-        endDate: perm.endDate.toISOString(),
-        startTime: perm.startTime.toISOString(),
-        endTime: perm.endTime.toISOString(),
-      });
-    });
-
-    // Query to check if faculty has edit permissions for the given time range
+    // Find a matching record in the database
     const permission = await EditPermission.findOne({
       facultyId,
       year,
       department,
       section,
-      startDate: { $lte: today }, // Ensuring date is in the range
-      endDate: { $gte: today },
-      startTime: { $lte: now }, // Ensuring current time is in range
-      endTime: { $gte: now },
+      startDate: { $lte: today }, // ✅ Check if startDate is before or on today
+      endDate: { $gte: startDate }, // ✅ Allow checking for past dates
+      startTime: { $lte: now },  // ✅ Keep the time check for today
+      endTime: { $gte: now },  
     });
 
     console.log("Fetched permission:", permission);
