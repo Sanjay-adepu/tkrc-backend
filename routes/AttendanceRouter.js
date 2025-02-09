@@ -10,6 +10,7 @@ const {
   getSectionOverallAttendance,
   grantEditPermission,
   checkEditPermission,
+  deleteEditPermission,
    fetchAttendanceByFilters
 } = require("../controllers/AttendanceController");
 
@@ -34,6 +35,10 @@ router.get("/date",fetchAttendanceByDate)
  * @desc    Check if attendance is already marked for a specific date, year, department, and section
  * @access  Public
  */
+
+
+// Add the DELETE route for deleting permissions
+router.delete('/delete-edit-permission', deleteEditPermission);
 router.post("/grantEditPermission", grantEditPermission);
 router.get("/checkEditPermission", checkEditPermission);
 router.get("/check", checkAttendance);
