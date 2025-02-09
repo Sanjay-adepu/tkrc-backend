@@ -629,7 +629,7 @@ module.exports = {
  checkEditPermission,
  deleteEditPermission,
  fetchAllEditPermissions,
- deleteEditPermission,
+ 
   fetchAttendanceByFilters
 };
 
