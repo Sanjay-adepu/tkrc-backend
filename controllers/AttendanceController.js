@@ -2,6 +2,18 @@ const Attendance = require("../models/studentAttendance");
  const Year = require("../models/studentSection");
 const EditPermission = require("../models/editPermission");
 
+
+
+
+// Fetch all granted edit permissions
+const fetchAllEditPermissions = async (req, res) => {
+    try {
+        const permissions = await EditPermission.find();
+        res.status(200).json({ success: true, data: permissions });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'Error fetching edit permissions', error: error.message });
+    }
+};
 // ✅ Check Edit Permission
 const checkEditPermission = async (req, res) => {
   try {
@@ -602,6 +614,7 @@ module.exports = {
  grantEditPermission,
  checkEditPermission,
  deleteEditPermission,
+ fetchAllEditPermissions,
   fetchAttendanceByFilters
 };
 
