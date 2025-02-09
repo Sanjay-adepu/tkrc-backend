@@ -42,7 +42,7 @@ router.get('/edit-permissions', fetchAllEditPermissions);
 router.delete('/permissions/:id', deleteEditPermission);
 
 // Add the DELETE route for deleting permissions
-router.delete('/delete-edit-permission', deleteEditPermission);
+
 router.post("/grantEditPermission", grantEditPermission);
 router.get("/checkEditPermission", checkEditPermission);
 router.get("/check", checkAttendance);
