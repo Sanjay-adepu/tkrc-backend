@@ -499,23 +499,25 @@ const getSectionOverallAttendance = async (req, res) => {
     res.status(500).json({ message: "An error occurred", error: error.message });
   }
 };
+
+
+
 const checkEditPermission = async (req, res) => {
   try {
     const { facultyId, year, department, section } = req.query;
     const now = new Date();
-    
-    // Extract only date (YYYY-MM-DD) for comparison
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
     console.log("Checking permission for:", { facultyId, year, department, section, today, now });
 
+    // Fetch permission **without restricting to today's date**
     const permission = await EditPermission.findOne({
       facultyId,
       year,
       department,
       section,
-      startDate: { $lte: today },  // ✅ Ensures past start dates work
-      endDate: { $gte: today },    // ✅ Ensures editing works for past ranges
+      startDate: { $lte: today },  // ✅ Allow past start dates
+      endDate: { $gte: startDate }, // ✅ Allow checking past end dates
       startTime: { $lte: now },
       endTime: { $gte: now },
     });
@@ -531,6 +533,8 @@ const checkEditPermission = async (req, res) => {
     res.status(500).json({ message: "An error occurred", error: error.message });
   }
 };
+
+
 
 module.exports = {
   markAttendance,
