@@ -495,14 +495,14 @@ const getStudentAttendance = async (req, res) => {
         subjectSummary[subject].classesAttended += 1;
       }
 
-      // Daily summary (Replacing "P" or "A" with Subject Name & Color)
+      // Daily summary (Replacing "P" or "A" with Subject Name & Status)
       if (!dailySummary[date]) {
         dailySummary[date] = { periods: {}, total: 0, attended: 0 };
       }
-      
+
       dailySummary[date].periods[period] = {
         subject: subject,
-        color: studentAttendance.status === "present" ? "green" : "red"
+        status: studentAttendance.status // "present" or "absent"
       };
 
       dailySummary[date].total += 1;
@@ -532,6 +532,8 @@ const getStudentAttendance = async (req, res) => {
     });
   }
 };
+               
+
 
 const getSectionOverallAttendance = async (req, res) => {
   try {
