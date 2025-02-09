@@ -10,7 +10,7 @@ const {
   getSectionOverallAttendance,
   grantEditPermission,
   checkEditPermission,
-  deleteEditPermission,
+
   fetchAllEditPermissions,
   deleteEditPermission,
    fetchAttendanceByFilters
