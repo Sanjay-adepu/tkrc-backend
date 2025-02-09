@@ -3,6 +3,7 @@ const Attendance = require("../models/studentAttendance");
 const EditPermission = require("../models/editPermission");
 
 // ✅ Check Edit Permission
+
 const checkEditPermission = async (req, res) => {
   try {
     const { facultyId, year, department, section, date } = req.query;
@@ -12,23 +13,21 @@ const checkEditPermission = async (req, res) => {
     }
 
     const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // Get only the date part (YYYY-MM-DD)
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // YYYY-MM-DD
 
-    console.log("Checking permission for:", { facultyId, year, department, section, today, now });
+    // ✅ Use provided "date" (if any) OR default to "today"
+    const targetDate = date ? new Date(date) : today;
 
-    // Fetch all permissions for debugging
-    const allPermissions = await EditPermission.find({});
-    console.log("Stored permissions in DB:", allPermissions);
+    console.log("Checking permission for:", { facultyId, year, department, section, targetDate, now });
 
-    // ✅ Find permission in the database
     const permission = await EditPermission.findOne({
       facultyId,
       year,
       department,
       section,
-      startDate: { $lte: today }, // Start date must be before or equal to today
-      endDate: { $gte: today },   // End date must be after or equal to today
-      startTime: { $lte: now },   // Check if current time is within allowed time
+      startDate: { $lte: targetDate }, // ✅ Check if the date being edited falls in range
+      endDate: { $gte: targetDate },  
+      startTime: { $lte: now }, 
       endTime: { $gte: now },
     });
 
@@ -43,6 +42,8 @@ const checkEditPermission = async (req, res) => {
     res.status(500).json({ message: "An error occurred", error: error.message });
   }
 };
+
+
 
 // ✅ Grant Edit Permission (Admin Only)
 const grantEditPermission = async (req, res) => {
