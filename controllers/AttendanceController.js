@@ -499,29 +499,23 @@ const getSectionOverallAttendance = async (req, res) => {
     res.status(500).json({ message: "An error occurred", error: error.message });
   }
 };
-
 const checkEditPermission = async (req, res) => {
   try {
-    const { facultyId, year, department, section, date } = req.query;
+    const { facultyId, year, department, section } = req.query;
     const now = new Date();
+    
+    // Extract only date (YYYY-MM-DD) for comparison
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
-    // Extract only the date part for proper date comparison
-    const requestedDate = date ? new Date(date) : new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    console.log("Checking permission for:", { facultyId, year, department, section, today, now });
 
-    if (!facultyId || !year || !department || !section) {
-      return res.status(400).json({ message: "Missing required parameters" });
-    }
-
-    console.log("Checking permission for:", { facultyId, year, department, section, requestedDate, now });
-
-    // Find a matching record in the database
     const permission = await EditPermission.findOne({
       facultyId,
       year,
       department,
       section,
-      startDate: { $lte: requestedDate }, // ✅ Allows past start dates
-      endDate: { $gte: requestedDate },  // ✅ Fix: Now allows past end dates too
+      startDate: { $lte: today },  // ✅ Ensures past start dates work
+      endDate: { $gte: today },    // ✅ Ensures editing works for past ranges
       startTime: { $lte: now },
       endTime: { $gte: now },
     });
