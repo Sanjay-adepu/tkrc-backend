@@ -576,45 +576,6 @@ const getSectionOverallAttendance = async (req, res) => {
     res.status(500).json({ message: "An error occurred", error: error.message });
   }
 };
-// Delete Edit Permission (Admin Only)
-const deleteEditPermission = async (req, res) => {
-  try {
-    const { facultyId, year, department, section, startDate, endDate } = req.body;
-
-    if (!facultyId || !year || !department || !section || !startDate || !endDate) {
-      return res.status(400).json({ message: "Missing required fields" });
-    }
-
-    // Convert string dates to Date objects
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-
-    // Find and delete the permission
-    const permission = await EditPermission.findOneAndDelete({
-      facultyId,
-      year,
-      department,
-      section,
-      startDate: { $eq: start },
-      endDate: { $eq: end },
-    });
-
-    if (!permission) {
-      return res.status(404).json({ message: "Permission not found" });
-    }
-
-    res.status(200).json({
-      message: "Edit permission deleted successfully",
-    });
-
-  } catch (error) {
-    console.error("Error deleting edit permission:", error.message);
-    res.status(500).json({
-      message: "An error occurred while deleting edit permission",
-      error: error.message,
-    });
-  }
-};
 
 module.exports = {
   markAttendance,
