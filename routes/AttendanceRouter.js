@@ -13,6 +13,7 @@ const {
 getStudentAttendanceWithSubjects,
   fetchAllEditPermissions,
   deleteEditPermission,
+  getSectionAttendanceSummaryForAllDates,
    fetchAttendanceByFilters
 } = require("../controllers/AttendanceController");
 
@@ -24,6 +25,8 @@ const router = express.Router();
  * @access  Public
  */
 router.post("/mark-attendance", markAttendance);
+// Route to get section-wise attendance summary for all dates
+router.get("/section-summary-all", getSectionAttendanceSummaryForAllDates);
 
 /**
  * @route   GET /Attendance/fetch-attendance
