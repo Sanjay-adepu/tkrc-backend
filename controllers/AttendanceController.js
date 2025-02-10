@@ -10,53 +10,54 @@ const getSectionAttendanceSummaryForAllDates = async (req, res) => {
       return res.status(400).json({ message: "Year, department, and section are required" });
     }
 
-    // Fetch all attendance records for the given filters
+    // Find all attendance records for the given section
     const attendanceRecords = await Attendance.find({ year, department, section });
 
     if (!attendanceRecords.length) {
       return res.status(404).json({ message: "No attendance records found for the given filters" });
     }
 
-    // Organize attendance data by date
+    // Organize attendance data by date and subject
     const attendanceSummary = {};
 
     attendanceRecords.forEach((record) => {
-      const dateKey = record.date;
+      const { date, period, subject, attendance } = record;
 
-      if (!attendanceSummary[dateKey]) {
-        attendanceSummary[dateKey] = {};
+      if (!attendanceSummary[date]) {
+        attendanceSummary[date] = {};
       }
 
-      record.periods.forEach((period) => {
-        const periodKey = `Period ${period.periodNumber} - ${period.subject || "N/A"}`;
+      const periodKey = `Period ${period} - ${subject || "N/A"}`;
 
-        if (!attendanceSummary[dateKey][periodKey]) {
-          attendanceSummary[dateKey][periodKey] = { presentCount: 0, absentCount: 0 };
-        }
+      if (!attendanceSummary[date][periodKey]) {
+        attendanceSummary[date][periodKey] = { presentCount: 0, absentCount: 0 };
+      }
 
-        if (period.isPresent) {
-          attendanceSummary[dateKey][periodKey].presentCount += 1;
+      attendance.forEach((studentAttendance) => {
+        if (studentAttendance.status === "present") {
+          attendanceSummary[date][periodKey].presentCount += 1;
         } else {
-          attendanceSummary[dateKey][periodKey].absentCount += 1;
+          attendanceSummary[date][periodKey].absentCount += 1;
         }
       });
     });
 
     res.status(200).json({
-      message: "Attendance summary fetched successfully",
+      message: "Section-wise attendance summary fetched successfully",
       year,
       department,
       section,
       attendance: attendanceSummary,
     });
   } catch (error) {
-    console.error("Error fetching section attendance summary:", error.message || error);
+    console.error("Error fetching section attendance summary:", error);
     res.status(500).json({
       message: "An error occurred while fetching attendance summary",
       error: error.message || error,
     });
   }
 };
+
 const getStudentAttendanceWithSubjects = async (req, res) => {
     try {
         const { studentId } = req.params;
