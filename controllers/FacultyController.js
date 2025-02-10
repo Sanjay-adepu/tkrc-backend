@@ -3,6 +3,60 @@ const bcrypt = require("bcryptjs");
 const path = require("path");
 const FacultyProfile = require("../models/admin"); 
 
+const loginAdmin= async (req, res) => {
+  try {
+    const { loginId, password } = req.body;
+
+    if (!loginId || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "Login ID and password are required",
+      });
+    }
+
+    const faculty = await FacultyProfile.findOne({ loginId });
+
+    if (!faculty) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid credentials: Faculty not found",
+      });
+    }
+
+    // Compare passwords
+    const isMatch = await bcrypt.compare(password, faculty.password);
+    if (!isMatch) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid credentials: Incorrect password",
+      });
+    }
+
+    // Successful login
+    res.status(200).json({
+      success: true,
+      message: "Login successful",
+      faculty: {
+        id: faculty._id,
+        name: faculty.name,
+        role: faculty.role,
+        department: faculty.department,
+      },
+    });
+  } catch (error) {
+    console.error("Error during login:", error.message);
+    res.status(500).json({
+      success: false,
+      message: "Error during login",
+      error: error.message,
+    });
+  }
+};
+
+
+
+
+
 const addFacultyProfile = async (req, res) => {    
   try {  
     const {   
@@ -563,5 +617,6 @@ module.exports = {
   addFacultyProfile,
   getFacultyProfileByLoginId,
   getAllFacultyProfiles,
+  loginAdmin,
  getTodayTimetableByFacultyId
 };
