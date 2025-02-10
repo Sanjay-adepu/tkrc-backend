@@ -2,7 +2,10 @@ const express = require("express");
 const multer = require("multer")
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const cloudinary = require("../cloudnaryConfig.js");
- 
+
+loginAdmin
+
+
 // Set up Cloudinary storage
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
@@ -29,6 +32,7 @@ getTodayTimetableByFacultyId,
  getFacultiesByDepartment,
  getFacultyUniqueCombinationsFor7Days,
   loginFaculty,
+ loginAdmin,
  addFacultyProfile,
  getFacultyByFacultyId,
  getTimetableByFacultyId,
@@ -39,7 +43,8 @@ getTodayTimetableByFacultyId,
 
 const router = express.Router();
 
-
+router.post("/Adminlogin", loginAdmin);
+ 
 //admin details
 router.post("/addfacultyprofile", upload.single("image"), addFacultyProfile);
 
