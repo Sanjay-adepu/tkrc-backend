@@ -32,6 +32,8 @@ getTodayTimetableByFacultyId,
  addFacultyProfile,
  getFacultyByFacultyId,
  getTimetableByFacultyId,
+ getAllFacultyProfiles,
+ getFacultyProfileByLoginId,
  deleteFacultyByFacultyId
 } = require("../controllers/FacultyController");
 
@@ -43,6 +45,10 @@ router.post("/addfacultyprofile", upload.single("image"), addFacultyProfile);
 
 
 // Routes
+// Routes admin
+router.get("/facultyprofiles", getAllFacultyProfiles);
+router.get("/facultyprofile/:loginId", getFacultyProfileByLoginId);
+
 router.post("/addfaculty", upload.single("image"), addFaculty);
 router.put("/update/:id", upload.single("image"), updateFaculty);
 router.get("/:facultyId/timetable-today", getTodayTimetableByFacultyId);
