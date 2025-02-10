@@ -1,7 +1,53 @@
 const Faculty = require("../models/facultymodel");
 const bcrypt = require("bcryptjs");
 const path = require("path");
-const Admin=require("../models/admin");
+const FacultyProfile = require("../models/admin"); 
+
+const addFacultyProfile = async (req, res) => {    
+  try {  
+    const {   
+      loginId, password, role, designation, department, name,   
+      qualification, areaOfInterest, jntuId, yearsOfExperience   
+    } = req.body;  
+
+    if (!loginId || !password || !role || !designation || !department || !name ||  
+        !qualification || !areaOfInterest || !jntuId || !yearsOfExperience) {  
+      return res.status(400).json({ message: "All fields are required" });  
+    }  
+
+    const hashedPassword = await bcrypt.hash(password, 10);  
+    const imagePath = req.file ? req.file.path : null;  
+
+    const newFaculty = new FacultyProfile({  
+      loginId,  
+      password: hashedPassword,  
+      role,  
+      designation,  
+      department,  
+      name,  
+      qualification,  
+      areaOfInterest,  
+      jntuId,  
+      yearsOfExperience,  
+      image: imagePath  
+    });  
+
+    await newFaculty.save();  
+
+    res.status(201).json({ message: "Faculty profile added successfully", faculty: newFaculty });  
+  } catch (error) {  
+    console.error("Error in addFacultyProfile:", error.message);  
+    res.status(500).json({ message: "Error adding faculty profile", error: error.message });  
+  }  
+};  
+
+
+
+
+
+
+
+
 
 const addFaculty = async (req, res) => {  
   try {
@@ -488,5 +534,6 @@ module.exports = {
        deleteFacultyByFacultyId,
        getFacultyByFacultyId,
        getTimetableByFacultyId,
+  addFacultyProfile,
  getTodayTimetableByFacultyId
 };
