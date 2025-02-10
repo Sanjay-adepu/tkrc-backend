@@ -29,12 +29,18 @@ getTodayTimetableByFacultyId,
  getFacultiesByDepartment,
  getFacultyUniqueCombinationsFor7Days,
   loginFaculty,
+ addFacultyProfile,
  getFacultyByFacultyId,
  getTimetableByFacultyId,
  deleteFacultyByFacultyId
 } = require("../controllers/FacultyController");
 
 const router = express.Router();
+
+
+//admin details
+router.post("/addfacultyprofile", upload.single("image"), addFacultyProfile);
+
 
 // Routes
 router.post("/addfaculty", upload.single("image"), addFaculty);
