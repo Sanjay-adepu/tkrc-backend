@@ -2,7 +2,7 @@ const Faculty = require("../models/facultymodel");
 const bcrypt = require("bcryptjs");
 const path = require("path");
 const FacultyProfile = require("../models/admin"); 
-
+ 
 const loginAdmin= async (req, res) => {
   try {
     const { loginId, password } = req.body;
