@@ -42,7 +42,33 @@ const addFacultyProfile = async (req, res) => {
 };  
 
 
+// Get all faculty profiles
+const getAllFacultyProfiles = async (req, res) => {
+  try {
+    const facultyProfiles = await FacultyProfile.find();
+    res.status(200).json(facultyProfiles);
+  } catch (error) {
+    console.error("Error in getAllFacultyProfiles:", error.message);
+    res.status(500).json({ message: "Error fetching faculty profiles", error: error.message });
+  }
+};
 
+// Get faculty profile by loginId
+const getFacultyProfileByLoginId = async (req, res) => {
+  try {
+    const { loginId } = req.params;
+    const facultyProfile = await FacultyProfile.findOne({ loginId });
+
+    if (!facultyProfile) {
+      return res.status(404).json({ message: "Faculty profile not found" });
+    }
+
+    res.status(200).json(facultyProfile);
+  } catch (error) {
+    console.error("Error in getFacultyProfileByLoginId:", error.message);
+    res.status(500).json({ message: "Error fetching faculty profile", error: error.message });
+  }
+};
 
 
 
@@ -535,5 +561,7 @@ module.exports = {
        getFacultyByFacultyId,
        getTimetableByFacultyId,
   addFacultyProfile,
+  getFacultyProfileByLoginId,
+  getAllFacultyProfiles,
  getTodayTimetableByFacultyId
 };
