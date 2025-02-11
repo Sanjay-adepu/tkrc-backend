@@ -25,14 +25,21 @@ const getSectionAttendanceSummaryForAllDates = async (req, res) => {
       const periodKey = `Period ${period} - ${subject || "N/A"}`;
 
       if (!attendanceSummary[periodKey]) {
-        attendanceSummary[periodKey] = { presentCount: 0, absentCount: 0 };
+        attendanceSummary[periodKey] = {
+          presentCount: 0,
+          absentCount: 0,
+          presentRollNumbers: [],
+          absentRollNumbers: [],
+        };
       }
 
       attendance.forEach((studentAttendance) => {
         if (studentAttendance.status === "present") {
           attendanceSummary[periodKey].presentCount += 1;
+          attendanceSummary[periodKey].presentRollNumbers.push(studentAttendance.rollNumber);
         } else {
           attendanceSummary[periodKey].absentCount += 1;
+          attendanceSummary[periodKey].absentRollNumbers.push(studentAttendance.rollNumber);
         }
       });
     });
