@@ -4,49 +4,45 @@ const EditPermission = require("../models/editPermission");
 
 const getSectionAttendanceSummaryForAllDates = async (req, res) => {
   try {
-    const { year, department, section } = req.query;
+    const { year, department, section, date } = req.query;
 
-    if (!year || !department || !section) {
-      return res.status(400).json({ message: "Year, department, and section are required" });
+    if (!year || !department || !section || !date) {
+      return res.status(400).json({ message: "Year, department, section, and date are required" });
     }
 
-    // Find all attendance records for the given section
-    const attendanceRecords = await Attendance.find({ year, department, section });
+    // Find attendance records for the given filters
+    const attendanceRecords = await Attendance.find({ year, department, section, date });
 
     if (!attendanceRecords.length) {
       return res.status(404).json({ message: "No attendance records found for the given filters" });
     }
 
-    // Organize attendance data by date and subject
+    // Organize attendance data by period and subject
     const attendanceSummary = {};
 
     attendanceRecords.forEach((record) => {
-      const { date, period, subject, attendance } = record;
-
-      if (!attendanceSummary[date]) {
-        attendanceSummary[date] = {};
-      }
-
+      const { period, subject, attendance } = record;
       const periodKey = `Period ${period} - ${subject || "N/A"}`;
 
-      if (!attendanceSummary[date][periodKey]) {
-        attendanceSummary[date][periodKey] = { presentCount: 0, absentCount: 0 };
+      if (!attendanceSummary[periodKey]) {
+        attendanceSummary[periodKey] = { presentCount: 0, absentCount: 0 };
       }
 
       attendance.forEach((studentAttendance) => {
         if (studentAttendance.status === "present") {
-          attendanceSummary[date][periodKey].presentCount += 1;
+          attendanceSummary[periodKey].presentCount += 1;
         } else {
-          attendanceSummary[date][periodKey].absentCount += 1;
+          attendanceSummary[periodKey].absentCount += 1;
         }
       });
     });
 
     res.status(200).json({
-      message: "Section-wise attendance summary fetched successfully",
+      message: "Attendance summary fetched successfully",
       year,
       department,
       section,
+      date,
       attendance: attendanceSummary,
     });
   } catch (error) {
