@@ -22,6 +22,9 @@ const upload = multer({ storage });
 // Add Year
 router.post('/years', studentController.addYear);
 
+router.get('/subjects-day/:yearId/:departmentId/:sectionId/:date', studentController.getSubjectsByDate);
+
+
 // Add Department to a Year
 router.post('/:yearId/departments', studentController.addDepartmentToYear);
 
