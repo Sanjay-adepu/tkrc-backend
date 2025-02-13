@@ -19,7 +19,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // CORS settings
 const corsOptions = {
-  origin: ["https://tkrcet.vercel.app", "https://tkrc-admin.vercel.app"], // Allowed origins
+  origin: ["https://tkrcet.vercel.app", "https://tkrc-admin.vercel.app","http://localhost:5173"], // Allowed origins
   methods: ["GET", "POST", "PUT", "DELETE"], // Allowed HTTP methods
   optionsSuccessStatus: 200,
 };
