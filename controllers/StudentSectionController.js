@@ -22,6 +22,58 @@ const getStudentsBySection = async (req, res) => {
   }
 };
 
+const getSubjectsByDate = async (req, res) => {
+  try {
+    const { yearId, departmentId, sectionId, date } = req.params;
+
+    // Validate the date format (YYYY-MM-DD)
+    const targetDate = new Date(date);
+    if (isNaN(targetDate.getTime())) {
+      return res.status(400).json({ message: "Invalid date format. Please use YYYY-MM-DD." });
+    }
+
+    // Determine the day of the week (e.g., "Monday")
+    const dayOfWeek = targetDate.toLocaleDateString('en-US', { weekday: 'long' });
+
+    // Fetch the year document
+    const yearData = await Year.findOne({ year: yearId });
+    if (!yearData) return res.status(404).json({ message: "Year not found" });
+
+    // Find the department within the year
+    const deptData = yearData.departments.find(dept => dept.name === departmentId);
+    if (!deptData) return res.status(404).json({ message: "Department not found" });
+
+    // Find the section within the department
+    const sectionData = deptData.sections.find(sec => sec.name === sectionId);
+    if (!sectionData) return res.status(404).json({ message: "Section not found" });
+
+    // Ensure the section has a timetable
+    if (!sectionData.timetable || sectionData.timetable.length === 0) {
+      return res.status(404).json({ message: "Timetable not found for this section" });
+    }
+
+    // Find the schedule for the specified day
+    const daySchedule = sectionData.timetable.find(schedule => schedule.day === dayOfWeek);
+    if (!daySchedule) {
+      return res.status(404).json({ message: `No timetable found for ${dayOfWeek}` });
+    }
+
+    // Respond with the subjects scheduled for the day
+    res.status(200).json({
+      success: true,
+      date,
+      day: dayOfWeek,
+      periods: daySchedule.periods.map(period => ({
+        periodNumber: period.periodNumber,
+        subject: period.subject
+      }))
+    });
+  } catch (error) {
+    console.error("Error fetching subjects by date:", error.message);
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
 // Add multiple students to a section
 const addStudentsToSection = async (req, res) => {
   try {
@@ -479,7 +531,7 @@ module.exports = {
   addYear,
   addDepartmentToYear,
   addSectionToDepartment,
-
+getSubjectsByDate,
   deleteAllStudentsInSection,
   getSectionTimetable,
   deleteStudentByRollNumber,
