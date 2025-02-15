@@ -2,7 +2,6 @@ const Attendance = require("../models/studentAttendance");
  const Year = require("../models/studentSection");
 const EditPermission = require("../models/editPermission");
 
-
 const moment = require("moment");
 
 const getAbsentStudentsForToday = async (req, res) => {
