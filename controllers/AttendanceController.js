@@ -6,63 +6,66 @@ const moment = require("moment");
 
 const getAbsentStudentsForToday = async (req, res) => {
     try {
-        const today = moment().format("YYYY-MM-DD");
+        const today = moment().format("YYYY-MM-DD"); // Format today's date
 
-        // Fetch attendance records where students were absent today
-        const attendanceRecords = await Attendance.find({
-            date: today,
-            status: "A" // Assuming 'A' means absent
-        });
+        // Fetch attendance records for today
+        const attendanceRecords = await Attendance.find({ date: today });
 
         if (!attendanceRecords.length) {
-            return res.status(200).json({ message: "No absentees today." });
+            return res.status(200).json({ message: "No attendance records found for today." });
         }
 
-        // Group absent students by rollNumber
-        let absenteeMap = {};
-        attendanceRecords.forEach(record => {
-            record.absentStudents.forEach(rollNumber => {
-                if (!absenteeMap[rollNumber]) {
-                    absenteeMap[rollNumber] = { rollNumber, periodsAbsent: [] };
-                }
-                absenteeMap[rollNumber].periodsAbsent.push(record.period);
-            });
-        });
-
-        const studentRollNumbers = Object.keys(absenteeMap);
-
-        // Fetch student details from the Year model
+        // Fetch all years with student details
         const years = await Year.find();
+
         let absentStudents = [];
 
-        years.forEach(year => {
-            year.departments.forEach(department => {
-                department.sections.forEach(section => {
-                    section.students.forEach(student => {
-                        if (studentRollNumbers.includes(student.rollNumber)) {
+        // Iterate over each year, department, and section
+        for (const year of years) {
+            for (const department of year.departments) {
+                for (const section of department.sections) {
+                    for (const student of section.students) {
+                        let absentPeriods = [];
+
+                        // Check each period for absences
+                        attendanceRecords.forEach((record) => {
+                            const periodAttendance = record.attendance.find(
+                                (entry) => entry.rollNumber === student.rollNumber
+                            );
+
+                            if (!periodAttendance || periodAttendance.status === "Absent") {
+                                absentPeriods.push(record.periodTime);
+                            }
+                        });
+
+                        // If the student was absent in any period, add to the response
+                        if (absentPeriods.length > 0) {
                             absentStudents.push({
                                 rollNumber: student.rollNumber,
                                 name: student.name,
-                                fatherMobileNumber: student.fatherMobileNumber || "N/A",
-                                year: year.year, // Include Year
-                                department: department.name, // Include Department
+                                fatherMobileNumber: student.fatherMobileNumber,
+                                year: year.year,
+                                department: department.name,
                                 section: section.name,
-                                periodsAbsent: absenteeMap[student.rollNumber].periodsAbsent.length,
-                                absentPeriods: absenteeMap[student.rollNumber].periodsAbsent
+                                periodsAbsent: absentPeriods.length,
+                                absentPeriods: absentPeriods
                             });
                         }
-                    });
-                });
-            });
-        });
+                    }
+                }
+            }
+        }
+
+        if (absentStudents.length === 0) {
+            return res.status(200).json({ message: "No absentees today." });
+        }
 
         res.status(200).json(absentStudents);
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: "Internal Server Error" });
+        console.error("Error fetching absent students:", error);
+        res.status(500).json({ message: "Server error." });
     }
 };
-
 
 
 
