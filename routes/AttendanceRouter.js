@@ -13,6 +13,7 @@ const {
 getStudentAttendanceWithSubjects,
   fetchAllEditPermissions,
   deleteEditPermission,
+  getAbsentStudentsForToday,
   getSectionAttendanceSummaryForAllDates,
    fetchAttendanceByFilters
 } = require("../controllers/AttendanceController");
