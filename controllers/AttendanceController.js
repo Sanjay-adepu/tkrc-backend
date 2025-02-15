@@ -3,61 +3,52 @@ const Attendance = require("../models/studentAttendance");
 const EditPermission = require("../models/editPermission");
 const moment = require("moment");
 
-const getAbsentStudentsForToday = async (req, res) => {
+
+  const getAbsentStudentsForToday = async (req, res) => {
   try {
     const today = new Date().toISOString().split("T")[0]; // Get today's date in YYYY-MM-DD format
 
     // Fetch today's attendance records
     const attendanceRecords = await Attendance.find({ date: today });
 
-    // Fetch all year, department, section, and student data
+    if (!attendanceRecords.length) {
+      return res.status(404).json({ message: "No attendance records found for today" });
+    }
+
+    let absenteesMap = new Map();
+
+    attendanceRecords.forEach((record) => {
+      record.attendance.forEach((entry) => {
+        if (entry.status === "absent") { // Check for absent students
+          if (!absenteesMap.has(entry.rollNumber)) {
+            absenteesMap.set(entry.rollNumber, {
+              rollNumber: entry.rollNumber,
+              name: entry.name,
+              fatherMobileNumber: "N/A", // This will be updated when we fetch student details
+              year: record.year,
+              department: record.department,
+              section: record.section,
+              absentPeriodsCount: 0,
+              absentPeriods: [],
+            });
+          }
+
+          let studentAbsentData = absenteesMap.get(entry.rollNumber);
+          studentAbsentData.absentPeriods.push(record.period);
+          studentAbsentData.absentPeriodsCount++;
+        }
+      });
+    });
+
+    // Fetch student details to get father's mobile number
     const allData = await Year.find();
-
-    let absentees = [];
-
     allData.forEach((yearData) => {
       yearData.departments.forEach((departmentData) => {
         departmentData.sections.forEach((sectionData) => {
-          // Get today's timetable for this section
-          const todayTimetable = sectionData.timetable.find(
-            (t) => t.day === new Date().toLocaleString("en-US", { weekday: "long" })
-          );
-
-          let sectionPeriods = [];
-          if (todayTimetable) {
-            sectionPeriods = todayTimetable.periods.map((p) => p.periodNumber);
-          }
-
-          // Get students in this section
           sectionData.students.forEach((student) => {
-            let absentPeriods = [];
-
-            // Find attendance record for this student
-            const studentAttendance = attendanceRecords.find((record) =>
-              record.attendance.some((entry) => entry.rollNumber === student.rollNumber)
-            );
-
-            if (studentAttendance) {
-              // Extract absent periods correctly
-              absentPeriods = studentAttendance.attendance
-                .filter((entry) => entry.rollNumber === student.rollNumber && !entry.present)
-                .map((entry) => entry.periodNumber);
-            } else {
-              // If no attendance records, assume absent for all section periods
-              absentPeriods = sectionPeriods;
-            }
-
-            if (absentPeriods.length > 0) {
-              absentees.push({
-                rollNumber: student.rollNumber,
-                name: student.name,
-                fatherMobileNumber: student.fatherMobileNumber || "N/A",
-                year: yearData.year,
-                department: departmentData.name,
-                section: sectionData.name,
-                absentPeriodsCount: absentPeriods.length,
-                absentPeriods: absentPeriods,
-              });
+            if (absenteesMap.has(student.rollNumber)) {
+              absenteesMap.get(student.rollNumber).fatherMobileNumber =
+                student.fatherMobileNumber || "N/A";
             }
           });
         });
@@ -66,7 +57,7 @@ const getAbsentStudentsForToday = async (req, res) => {
 
     res.status(200).json({
       message: "Absent students fetched successfully",
-      absentees,
+      absentees: Array.from(absenteesMap.values()),
     });
   } catch (error) {
     console.error("Error fetching absent students for today:", error.message || error);
@@ -76,6 +67,7 @@ const getAbsentStudentsForToday = async (req, res) => {
     });
   }
 };
+             
 
 
 
