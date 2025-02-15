@@ -1,9 +1,7 @@
-const mongoose = require("mongoose");
 const twilio = require("twilio");
-
-const Attendance = require("./models/Attendance"); // Attendance model
-const Year = require("./models/Year"); // Year model
-const SentSMS = require("./models/SentSMS"); // New model for storing sent SMS
+const cron = require("node-cron");
+const Attendance = require("./models/studentAttendance");
+const Year = require("./models/studentSection");
 
 // Twilio Credentials
 const ACCOUNT_SID = "AC16acf70c6a0d9d9ec640178685ae2a50";
@@ -12,133 +10,85 @@ const TWILIO_PHONE_NUMBER = "+18777804236";
 
 const client = new twilio(ACCOUNT_SID, AUTH_TOKEN);
 
-// Function to send SMS
-const sendSMS = async (mobileNumber, message, date, rollNumber) => {
+// Function to send SMS to parents of absent students
+const sendAbsentNotifications = async () => {
   try {
-    if (!mobileNumber) return;
-    await client.messages.create({
-      body: message,
-      from: TWILIO_PHONE_NUMBER,
-      to: mobileNumber,
-    });
-
-    // Store sent SMS details in the database
-    await SentSMS.create({
-      date,
-      phone: mobileNumber,
-      rollNumber,
-      message,
-    });
-
-    console.log(`SMS sent to ${mobileNumber}`);
-  } catch (error) {
-    console.error(`Failed to send SMS to ${mobileNumber}:`, error);
-  }
-};
-
-// Function to fetch today's absent students
-const getAbsentStudents = async () => {
-  try {
-    const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+    const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
     const attendanceRecords = await Attendance.find({ date: today });
 
-    let absentStudents = {};
+    if (!attendanceRecords.length) {
+      console.log("No attendance records found for today.");
+      return;
+    }
 
-    // Collect absent students per roll number
+    let absenteesMap = new Map();
+
     attendanceRecords.forEach((record) => {
       record.attendance.forEach((entry) => {
         if (entry.status === "absent") {
-          if (!absentStudents[entry.rollNumber]) {
-            absentStudents[entry.rollNumber] = {
+          if (!absenteesMap.has(entry.rollNumber)) {
+            absenteesMap.set(entry.rollNumber, {
+              rollNumber: entry.rollNumber,
               name: entry.name,
-              absentCount: 0,
+              fatherMobileNumber: "N/A",
+              year: record.year,
               department: record.department,
               section: record.section,
-              year: record.year,
-            };
+              absentPeriodsCount: 0,
+              absentPeriods: [],
+            });
           }
-          absentStudents[entry.rollNumber].absentCount += 1;
+
+          let studentAbsentData = absenteesMap.get(entry.rollNumber);
+          studentAbsentData.absentPeriods.push(record.period);
+          studentAbsentData.absentPeriodsCount++;
         }
       });
     });
 
-    return absentStudents;
-  } catch (error) {
-    console.error("Error fetching attendance data:", error);
-    return {};
-  }
-};
-
-// Function to get student parent mobile numbers
-const getParentMobileNumbers = async (absentStudents) => {
-  try {
-    const years = await Year.find(); // Fetch all years data
-
-    let studentMobileMap = {};
-
-    // Traverse through the nested schema structure
-    years.forEach((year) => {
-      year.departments.forEach((dept) => {
-        dept.sections.forEach((section) => {
-          section.students.forEach((student) => {
-            if (absentStudents[student.rollNumber]) {
-              studentMobileMap[student.rollNumber] = {
-                name: student.name,
-                fatherMobileNumber: student.fatherMobileNumber,
-              };
+    // Fetch student details to get parents' mobile numbers
+    const allData = await Year.find();
+    allData.forEach((yearData) => {
+      yearData.departments.forEach((departmentData) => {
+        departmentData.sections.forEach((sectionData) => {
+          sectionData.students.forEach((student) => {
+            if (absenteesMap.has(student.rollNumber)) {
+              absenteesMap.get(student.rollNumber).fatherMobileNumber =
+                student.fatherMobileNumber || "N/A";
             }
           });
         });
       });
     });
 
-    return studentMobileMap;
-  } catch (error) {
-    console.error("Error fetching student details:", error);
-    return {};
-  }
-};
+    // Send SMS to parents
+    for (const student of absenteesMap.values()) {
+      if (student.fatherMobileNumber !== "N/A") {
+        const message = `Dear Parent, your child ${student.name} (Roll No: ${student.rollNumber}) was absent today for ${student.absentPeriodsCount} period(s). Please ensure their attendance.`;
 
-// Function to send SMS notifications to parents
-const sendAttendanceMessages = async () => {
-  console.log("Fetching absent students...");
-
-  const absentStudents = await getAbsentStudents();
-
-  if (Object.keys(absentStudents).length === 0) {
-    console.log("No absentees today.");
-    return;
-  }
-
-  console.log("Fetching student parent mobile numbers...");
-
-  const studentMobiles = await getParentMobileNumbers(absentStudents);
-  const today = new Date().toISOString().split("T")[0];
-
-  for (const rollNumber in absentStudents) {
-    if (studentMobiles[rollNumber]) {
-      const student = absentStudents[rollNumber];
-      const fatherMobileNumber = studentMobiles[rollNumber].fatherMobileNumber;
-      const absentCount = student.absentCount;
-
-      const message = `Dear Parent, Your ward ${student.name} (Roll No: ${rollNumber}) was absent for ${absentCount} periods out of 6 on ${today}. For any queries, contact the class teacher.`;
-
-      if (fatherMobileNumber) {
-        await sendSMS(fatherMobileNumber, message, today, rollNumber);
+        try {
+          await client.messages.create({
+            body: message,
+            from: TWILIO_PHONE_NUMBER,
+            to: student.fatherMobileNumber,
+          });
+          console.log(`SMS sent to ${student.fatherMobileNumber} for ${student.name}`);
+        } catch (smsError) {
+          console.error(`Failed to send SMS to ${student.fatherMobileNumber}:`, smsError.message);
+        }
       }
     }
+
+    console.log("Absent notifications sent successfully.");
+  } catch (error) {
+    console.error("Error sending absent notifications:", error.message || error);
   }
-
-  console.log("Attendance messages sent.");
-
-  // Now, establish the MongoDB connection after sending messages
-  mongoose
-    .connect("mongodb+srv://tkrcet:abc1234@cluster0.y4apc.mongodb.net/tkrcet")
-    .then(() => console.log("MongoDB connected successfully"))
-    .catch((error) => console.error("MongoDB connection failed:", error.message));
 };
 
-// Send SMS notifications immediately
-sendAttendanceMessages();
+// Schedule the function to run at **5 PM (17:00)**
+cron.schedule("0 17 * * *", () => {
+  console.log("Running SMS notification job at 5 PM...");
+  sendAbsentNotifications();
+});
 
-console.log("Attendance SMS service running...");
+module.exports = sendAbsentNotifications;
