@@ -5,8 +5,8 @@ const Year = require("./models/studentSection");
  
 // Twilio Credentials
 const ACCOUNT_SID = "AC16acf70c6a0d9d9ec640178685ae2a50";
-const AUTH_TOKEN = "8a0bdc3c3029b84973891fef9da20331";
-const TWILIO_PHONE_NUMBER = "+18777804236";
+const AUTH_TOKEN = "99387fa37c4319453fd92e1594e1e93a";
+const TWILIO_PHONE_NUMBER = "+18142941457";
 
 const client = new twilio(ACCOUNT_SID, AUTH_TOKEN);
 
