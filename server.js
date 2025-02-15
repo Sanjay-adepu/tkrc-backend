@@ -55,6 +55,17 @@ app.get("/", (req, res) => {
   res.status(200).send("Welcome to the TKRCET Attendance API!");
 });
 
+app.get("/test-sms", async (req, res) => {
+  try {
+    await sendAbsentNotifications();
+    res.status(200).json({ message: "Test SMS sent successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "SMS sending failed", error: error.message });
+  }
+});
+
+
+
 // Handle 404 errors for undefined routes
 app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });
