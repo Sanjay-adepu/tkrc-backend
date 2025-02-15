@@ -68,10 +68,10 @@ const sendAbsentNotifications = async () => {
 
         try {
           await client.messages.create({
-            body: message,
-            from: TWILIO_PHONE_NUMBER,
-            to: student.fatherMobileNumber,
-          });
+  body: message,
+  from: TWILIO_PHONE_NUMBER,
+  to: `+91${student.fatherMobileNumber}`,
+});
           console.log(`SMS sent to ${student.fatherMobileNumber} for ${student.name}`);
         } catch (smsError) {
           console.error(`Failed to send SMS to ${student.fatherMobileNumber}:`, smsError.message);
