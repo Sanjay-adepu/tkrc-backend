@@ -24,6 +24,9 @@ const router = express.Router();
  * @desc    Mark attendance for a specific date, year, department, and section
  * @access  Public
  */
+// Route to fetch absentees for today
+router.get("/absentees-today", getAbsentStudentsForToday);
+
 router.post("/mark-attendance", markAttendance);
 // Route to get section-wise attendance summary for all dates
 router.get("/section-summary-all", getSectionAttendanceSummaryForAllDates);
