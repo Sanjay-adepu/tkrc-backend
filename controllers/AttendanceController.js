@@ -31,27 +31,23 @@ const getAbsentStudentsForToday = async (req, res) => {
           // Get students in this section
           sectionData.students.forEach((student) => {
             let absentPeriods = [];
-            let absentCount = 0;
 
-            if (attendanceRecords.length > 0) {
-              attendanceRecords.forEach((record) => {
-                record.attendance.forEach((attendanceEntry) => {
-                  if (
-                    attendanceEntry.rollNumber === student.rollNumber &&
-                    !attendanceEntry.present
-                  ) {
-                    absentPeriods.push(attendanceEntry.periodNumber);
-                  }
-                });
-              });
-              absentCount = absentPeriods.length;
+            // Find attendance record for this student
+            const studentAttendance = attendanceRecords.find((record) =>
+              record.attendance.some((entry) => entry.rollNumber === student.rollNumber)
+            );
+
+            if (studentAttendance) {
+              // Extract absent periods correctly
+              absentPeriods = studentAttendance.attendance
+                .filter((entry) => entry.rollNumber === student.rollNumber && !entry.present)
+                .map((entry) => entry.periodNumber);
             } else {
-              // If no attendance records, assume student absent for all periods in this section
-              absentCount = sectionPeriods.length;
+              // If no attendance records, assume absent for all section periods
               absentPeriods = sectionPeriods;
             }
 
-            if (absentCount > 0) {
+            if (absentPeriods.length > 0) {
               absentees.push({
                 rollNumber: student.rollNumber,
                 name: student.name,
@@ -59,7 +55,7 @@ const getAbsentStudentsForToday = async (req, res) => {
                 year: yearData.year,
                 department: departmentData.name,
                 section: sectionData.name,
-                absentPeriodsCount: absentCount,
+                absentPeriodsCount: absentPeriods.length,
                 absentPeriods: absentPeriods,
               });
             }
@@ -80,6 +76,7 @@ const getAbsentStudentsForToday = async (req, res) => {
     });
   }
 };
+
 
 
 
