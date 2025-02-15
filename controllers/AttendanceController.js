@@ -5,18 +5,14 @@ const moment = require("moment");
 
 const getAbsentStudentsForToday = async (req, res) => {
     try {
-        const today = moment().format("YYYY-MM-DD"); // Get today's date
-
-        // Fetch attendance records for today
+        const today = moment().format("YYYY-MM-DD"); // Default to today's date
         const attendanceRecords = await Attendance.find({ date: today });
 
-        if (!attendanceRecords.length) {
-            return res.status(200).json({ message: "No attendance records found for today." });
+        if (attendanceRecords.length === 0) {
+            return res.status(200).json([]);
         }
 
-        // Fetch all years with student details
         const years = await Year.find();
-
         let absentStudents = [];
 
         // Iterate over each year, department, and section
@@ -26,18 +22,18 @@ const getAbsentStudentsForToday = async (req, res) => {
                     for (const student of section.students) {
                         let absentPeriods = [];
 
-                        // Check each period for absences
+                        // Check each period for absence
                         attendanceRecords.forEach((record) => {
                             const periodAttendance = record.attendance.find(
                                 (entry) => entry.rollNumber === student.rollNumber
                             );
 
-                            if (!periodAttendance || periodAttendance.status === "Absent") {
-                                absentPeriods.push(record.periodNumber); // Store period number (1-6)
+                            if (periodAttendance && periodAttendance.status === "Absent") {
+                                absentPeriods.push(record.periodTime);
                             }
                         });
 
-                        // If the student was absent in any period, add to the response
+                        // If student was absent in any period, add to the result
                         if (absentPeriods.length > 0) {
                             absentStudents.push({
                                 rollNumber: student.rollNumber,
@@ -47,16 +43,12 @@ const getAbsentStudentsForToday = async (req, res) => {
                                 department: department.name,
                                 section: section.name,
                                 periodsAbsent: absentPeriods.length,
-                                absentPeriods: absentPeriods // List of periods the student was absent
+                                absentPeriods: absentPeriods
                             });
                         }
                     }
                 }
             }
-        }
-
-        if (absentStudents.length === 0) {
-            return res.status(200).json({ message: "No absentees today." });
         }
 
         res.status(200).json(absentStudents);
