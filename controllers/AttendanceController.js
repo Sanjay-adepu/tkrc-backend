@@ -4,59 +4,84 @@ const EditPermission = require("../models/editPermission");
 const moment = require("moment");
 
 const getAbsentStudentsForToday = async (req, res) => {
-    try {
-        const today = moment().format("YYYY-MM-DD"); // Default to today's date
-        const attendanceRecords = await Attendance.find({ date: today });
+  try {
+    const today = new Date().toISOString().split("T")[0]; // Get today's date in YYYY-MM-DD format
 
-        if (attendanceRecords.length === 0) {
-            return res.status(200).json([]);
-        }
+    // Fetch today's attendance records
+    const attendanceRecords = await Attendance.find({ date: today });
 
-        const years = await Year.find();
-        let absentStudents = [];
+    // Fetch all year, department, section, and student data
+    const allData = await Year.find();
 
-        // Iterate over each year, department, and section
-        for (const year of years) {
-            for (const department of year.departments) {
-                for (const section of department.sections) {
-                    for (const student of section.students) {
-                        let absentPeriods = [];
+    let absentees = [];
 
-                        // Check each period for absence
-                        attendanceRecords.forEach((record) => {
-                            const periodAttendance = record.attendance.find(
-                                (entry) => entry.rollNumber === student.rollNumber
-                            );
+    allData.forEach((yearData) => {
+      yearData.departments.forEach((departmentData) => {
+        departmentData.sections.forEach((sectionData) => {
+          // Get today's timetable for this section
+          const todayTimetable = sectionData.timetable.find(
+            (t) => t.day === new Date().toLocaleString("en-US", { weekday: "long" })
+          );
 
-                            if (periodAttendance && periodAttendance.status === "Absent") {
-                                absentPeriods.push(record.periodTime);
-                            }
-                        });
+          let sectionPeriods = [];
+          if (todayTimetable) {
+            sectionPeriods = todayTimetable.periods.map((p) => p.periodNumber);
+          }
 
-                        // If student was absent in any period, add to the result
-                        if (absentPeriods.length > 0) {
-                            absentStudents.push({
-                                rollNumber: student.rollNumber,
-                                name: student.name,
-                                fatherMobileNumber: student.fatherMobileNumber,
-                                year: year.year,
-                                department: department.name,
-                                section: section.name,
-                                periodsAbsent: absentPeriods.length,
-                                absentPeriods: absentPeriods
-                            });
-                        }
-                    }
-                }
+          // Get students in this section
+          sectionData.students.forEach((student) => {
+            let absentPeriods = [];
+            let absentCount = 0;
+
+            if (attendanceRecords.length > 0) {
+              attendanceRecords.forEach((record) => {
+                record.attendance.forEach((attendanceEntry) => {
+                  if (
+                    attendanceEntry.rollNumber === student.rollNumber &&
+                    !attendanceEntry.present
+                  ) {
+                    absentPeriods.push(attendanceEntry.periodNumber);
+                  }
+                });
+              });
+              absentCount = absentPeriods.length;
+            } else {
+              // If no attendance records, assume student absent for all periods in this section
+              absentCount = sectionPeriods.length;
+              absentPeriods = sectionPeriods;
             }
-        }
 
-        res.status(200).json(absentStudents);
-    } catch (error) {
-        console.error("Error fetching absent students:", error);
-        res.status(500).json({ message: "Server error." });
-    }
+            if (absentCount > 0) {
+              absentees.push({
+                rollNumber: student.rollNumber,
+                name: student.name,
+                fatherMobileNumber: student.fatherMobileNumber || "N/A",
+                year: yearData.year,
+                department: departmentData.name,
+                section: sectionData.name,
+                absentPeriodsCount: absentCount,
+                absentPeriods: absentPeriods,
+              });
+            }
+          });
+        });
+      });
+    });
+
+    res.status(200).json({
+      message: "Absent students fetched successfully",
+      absentees,
+    });
+  } catch (error) {
+    console.error("Error fetching absent students for today:", error.message || error);
+    res.status(500).json({
+      message: "An error occurred while fetching absent students for today",
+      error: error.message || error,
+    });
+  }
 };
+
+
 
 const getSectionAttendanceSummaryForAllDates = async (req, res) => {
   try {
