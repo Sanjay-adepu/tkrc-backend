@@ -2,6 +2,72 @@ const Attendance = require("../models/studentAttendance");
  const Year = require("../models/studentSection");
 const EditPermission = require("../models/editPermission");
 
+
+const moment = require("moment");
+
+const getAbsentStudentsForToday = async (req, res) => {
+    try {
+        const today = moment().format("YYYY-MM-DD");
+
+        // Fetch attendance records where students were absent today
+        const attendanceRecords = await Attendance.find({
+            date: today,
+            status: "A" // Assuming 'A' means absent
+        });
+
+        if (!attendanceRecords.length) {
+            return res.status(200).json({ message: "No absentees today." });
+        }
+
+        // Group absent students by rollNumber
+        let absenteeMap = {};
+        attendanceRecords.forEach(record => {
+            record.absentStudents.forEach(rollNumber => {
+                if (!absenteeMap[rollNumber]) {
+                    absenteeMap[rollNumber] = { rollNumber, periodsAbsent: [] };
+                }
+                absenteeMap[rollNumber].periodsAbsent.push(record.period);
+            });
+        });
+
+        const studentRollNumbers = Object.keys(absenteeMap);
+
+        // Fetch student details from the Year model
+        const years = await Year.find();
+        let absentStudents = [];
+
+        years.forEach(year => {
+            year.departments.forEach(department => {
+                department.sections.forEach(section => {
+                    section.students.forEach(student => {
+                        if (studentRollNumbers.includes(student.rollNumber)) {
+                            absentStudents.push({
+                                rollNumber: student.rollNumber,
+                                name: student.name,
+                                fatherMobileNumber: student.fatherMobileNumber || "N/A",
+                                year: year.year, // Include Year
+                                department: department.name, // Include Department
+                                section: section.name,
+                                periodsAbsent: absenteeMap[student.rollNumber].periodsAbsent.length,
+                                absentPeriods: absenteeMap[student.rollNumber].periodsAbsent
+                            });
+                        }
+                    });
+                });
+            });
+        });
+
+        res.status(200).json(absentStudents);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+};
+
+
+
+
+
 const getSectionAttendanceSummaryForAllDates = async (req, res) => {
   try {
     const { year, department, section, date } = req.query;
@@ -686,6 +752,7 @@ module.exports = {
  fetchAllEditPermissions,
  getStudentAttendanceWithSubjects,
  getSectionAttendanceSummaryForAllDates,
+ getAbsentStudentsForToday,
   fetchAttendanceByFilters
 };
 
