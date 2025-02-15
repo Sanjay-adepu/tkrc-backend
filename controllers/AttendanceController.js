@@ -1,12 +1,11 @@
 const Attendance = require("../models/studentAttendance");
  const Year = require("../models/studentSection");
 const EditPermission = require("../models/editPermission");
-
 const moment = require("moment");
 
 const getAbsentStudentsForToday = async (req, res) => {
     try {
-        const today = moment().format("YYYY-MM-DD"); // Format today's date
+        const today = moment().format("YYYY-MM-DD"); // Get today's date
 
         // Fetch attendance records for today
         const attendanceRecords = await Attendance.find({ date: today });
@@ -34,7 +33,7 @@ const getAbsentStudentsForToday = async (req, res) => {
                             );
 
                             if (!periodAttendance || periodAttendance.status === "Absent") {
-                                absentPeriods.push(record.periodTime);
+                                absentPeriods.push(record.periodNumber); // Store period number (1-6)
                             }
                         });
 
@@ -48,7 +47,7 @@ const getAbsentStudentsForToday = async (req, res) => {
                                 department: department.name,
                                 section: section.name,
                                 periodsAbsent: absentPeriods.length,
-                                absentPeriods: absentPeriods
+                                absentPeriods: absentPeriods // List of periods the student was absent
                             });
                         }
                     }
@@ -66,9 +65,6 @@ const getAbsentStudentsForToday = async (req, res) => {
         res.status(500).json({ message: "Server error." });
     }
 };
-
-
-
 
 const getSectionAttendanceSummaryForAllDates = async (req, res) => {
   try {
