@@ -268,7 +268,19 @@ const grantEditPermission = async (req, res) => {
 
 const markAttendance = async (req, res) => {  
   try {  
-    const { date, periods, subject, topic, remarks, year, department, section, attendance, editing } = req.body;  
+    const {  
+      date,  
+      periods,  
+      subject,  
+      topic,  
+      remarks,  
+      year,  
+      department,  
+      section,  
+      attendance,  
+      facultyName, // Added facultyName  
+      editing,  
+    } = req.body;  
   
     // Validate periods  
     if (!Array.isArray(periods) || periods.some((p) => typeof p !== "number" || p === null || p === undefined)) {  
@@ -314,6 +326,7 @@ const markAttendance = async (req, res) => {
         existingAttendance.subject = subject;  
         existingAttendance.topic = topic;  
         existingAttendance.remarks = remarks;  
+        existingAttendance.facultyName = facultyName || existingAttendance.facultyName; // Update facultyName if provided  
         existingAttendance.attendance = formattedAttendance;  
   
         const updatedAttendance = await existingAttendance.save();  
@@ -326,6 +339,7 @@ const markAttendance = async (req, res) => {
           subject,  
           topic,  
           remarks,  
+          facultyName, // Added facultyName  
           year,  
           department,  
           section,  
@@ -349,7 +363,7 @@ const markAttendance = async (req, res) => {
       error: error.message || error,  
     });  
   }  
-};  
+};
 
 // Fetch Attendance Records by Date
 const fetchAttendanceByDate = async (req, res) => {
