@@ -1,6 +1,5 @@
 const mongoose = require("mongoose"); 
 
-
 const StudentSchema = new mongoose.Schema({
   rollNumber: { type: String, required: true }, // e.g., "101"
   name: { type: String, required: true }, // e.g., "John Doe"
@@ -8,7 +7,7 @@ const StudentSchema = new mongoose.Schema({
   password: { type: String, required: false }, // Password for the student
   role: { type: String, enum: ["student", "admin", "teacher"], default: "student" }, // Role of the user
   image: { type: String, required: false }, // Path or URL to the student's image
-  mobileNumber: { type: String, required: false}, // Student's mobile number
+  mobileNumber: { type: String, required: false }, // Student's mobile number
   fatherMobileNumber: { type: String, required: false }, // Father's mobile number (optional)
 });
 
@@ -18,6 +17,7 @@ const SectionTimetableSchema = new mongoose.Schema({
     {
       periodNumber: { type: Number, required: true },
       subject: { type: String, required: true },
+      facultyName: { type: String, required: true }, // Faculty name for the subject
     },
   ],
 });
