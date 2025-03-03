@@ -265,105 +265,107 @@ const grantEditPermission = async (req, res) => {
   }
 };
 
+const markAttendance = async (req, res) => {
+  try {
+    const {
+      date,
+      periods,
+      subject,
+      topic,
+      remarks,
+      year,
+      department,
+      section,
+      attendance,
+      facultyName, // Automatically set faculty name
+      editing,
+    } = req.body;
 
-const markAttendance = async (req, res) => {  
-  try {  
-    const {  
-      date,  
-      periods,  
-      subject,  
-      topic,  
-      remarks,  
-      year,  
-      department,  
-      section,  
-      attendance,  
-      facultyName, // Added facultyName  
-      editing,  
-    } = req.body;  
-  
-    // Validate periods  
-    if (!Array.isArray(periods) || periods.some((p) => typeof p !== "number" || p === null || p === undefined)) {  
-      return res.status(400).json({ message: "Periods must be an array of valid numbers" });  
-    }  
-  
-    // Format attendance  
-    const formattedAttendance = attendance.map(({ rollNumber, name, status }) => {  
-      if (!rollNumber || !name || !status) {  
-        throw new Error("Each attendance entry must include rollNumber, name, and status.");  
-      }  
-      if (!["present", "absent"].includes(status.toLowerCase())) {  
-        throw new Error(`Invalid status for rollNumber ${rollNumber}. Must be 'present' or 'absent'.`);  
-      }  
-      return { rollNumber, name, status: status.toLowerCase() };  
-    });  
-  
-    // Fetch marked periods for the given date, year, department, and section  
-    const markedPeriods = await Attendance.find({ date, year, department, section }).select("period");  
-    const markedPeriodNumbers = markedPeriods.map((record) => record.period);  
-  
-    if (editing) {  
-      // Ensure all provided periods exist for editing  
-      const invalidPeriods = periods.filter((p) => !markedPeriodNumbers.includes(p));  
-      if (invalidPeriods.length > 0) {  
-        return res.status(400).json({ message: `Invalid periods provided for editing: ${invalidPeriods.join(", ")}` });  
-      }  
-    } else {  
-      // Prevent marking attendance for already marked periods  
-      const duplicatePeriods = periods.filter((p) => markedPeriodNumbers.includes(p));  
-      if (duplicatePeriods.length > 0) {  
-        return res.status(400).json({ message: `Periods already marked: ${duplicatePeriods.join(", ")}` });  
-      }  
-    }  
-  
-    // Process attendance for each period  
-    const attendanceResponses = [];  
-    for (const period of periods) {  
-      const existingAttendance = await Attendance.findOne({ date, period, year, department, section });  
-  
-      if (existingAttendance) {  
-        // Update existing attendance  
-        existingAttendance.subject = subject;  
-        existingAttendance.topic = topic;  
-        existingAttendance.remarks = remarks;  
-        existingAttendance.facultyName = facultyName || existingAttendance.facultyName; // Update facultyName if provided  
-        existingAttendance.attendance = formattedAttendance;  
-  
-        const updatedAttendance = await existingAttendance.save();  
-        attendanceResponses.push({ period, record: updatedAttendance, status: "updated" });  
-      } else {  
-        // Create new attendance  
-        const newAttendance = new Attendance({  
-          date,  
-          period,  
-          subject,  
-          topic,  
-          remarks,  
-          facultyName, // Added facultyName  
-          year,  
-          department,  
-          section,  
-          attendance: formattedAttendance,  
-        });  
-  
-        const savedAttendance = await newAttendance.save();  
-        attendanceResponses.push({ period, record: savedAttendance, status: "created" });  
-      }  
-    }  
-  
-    res.status(201).json({  
-      message: "Attendance processed successfully for all selected periods!",  
-      records: attendanceResponses,  
-      markedPeriods: markedPeriodNumbers, // Return marked periods for client-side validation  
-    });  
-  } catch (error) {  
-    console.error("Error processing attendance:", error.message || error);  
-    res.status(500).json({  
-      message: "An error occurred while processing attendance",  
-      error: error.message || error,  
-    });  
-  }  
+    if (!facultyName) {
+      return res.status(400).json({ message: "Faculty name is required." });
+    }
+
+    const formattedAttendance = attendance.map(({ rollNumber, name, status }) => {
+      if (!rollNumber || !name || !status) {
+        throw new Error("Each attendance entry must include rollNumber, name, and status.");
+      }
+      if (!["present", "absent"].includes(status.toLowerCase())) {
+        throw new Error(`Invalid status for rollNumber ${rollNumber}. Must be 'present' or 'absent'.`);
+      }
+      return { rollNumber, name, status: status.toLowerCase() };
+    });
+
+    const markedPeriods = await Attendance.find({ date, year, department, section }).select("period");
+    const markedPeriodNumbers = markedPeriods.map((record) => record.period);
+
+    if (editing) {
+      const invalidPeriods = periods.filter((p) => !markedPeriodNumbers.includes(p));
+      if (invalidPeriods.length > 0) {
+        return res.status(400).json({
+          message: `Invalid periods provided for editing: ${invalidPeriods.join(", ")}`,
+        });
+      }
+    } else {
+      const duplicatePeriods = periods.filter((p) => markedPeriodNumbers.includes(p));
+      if (duplicatePeriods.length > 0) {
+        return res.status(400).json({
+          message: `Periods already marked: ${duplicatePeriods.join(", ")}`,
+        });
+      }
+    }
+
+    const attendanceResponses = [];
+    for (const period of periods) {
+      const existingAttendance = await Attendance.findOne({
+        date,
+        period,
+        year,
+        department,
+        section,
+      });
+
+      if (existingAttendance) {
+        existingAttendance.subject = subject;
+        existingAttendance.topic = topic;
+        existingAttendance.remarks = remarks;
+        existingAttendance.facultyName = facultyName || existingAttendance.facultyName; // Preserve existing faculty name
+        existingAttendance.attendance = formattedAttendance;
+
+        const updatedAttendance = await existingAttendance.save();
+        attendanceResponses.push({ period, record: updatedAttendance, status: "updated" });
+      } else {
+        const newAttendance = new Attendance({
+          date,
+          period,
+          subject,
+          topic,
+          remarks,
+          facultyName, // Auto-set faculty name
+          year,
+          department,
+          section,
+          attendance: formattedAttendance,
+        });
+
+        const savedAttendance = await newAttendance.save();
+        attendanceResponses.push({ period, record: savedAttendance, status: "created" });
+      }
+    }
+
+    res.status(201).json({
+      message: "Attendance processed successfully!",
+      records: attendanceResponses,
+      markedPeriods: markedPeriodNumbers,
+    });
+  } catch (error) {
+    console.error("Error processing attendance:", error.message || error);
+    res.status(500).json({
+      message: "An error occurred while processing attendance",
+      error: error.message || error,
+    });
+  }
 };
+
 
 // Fetch Attendance Records by Date
 const fetchAttendanceByDate = async (req, res) => {
