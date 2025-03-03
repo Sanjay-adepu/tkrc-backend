@@ -148,16 +148,17 @@ const addStudentsToSection = async (req, res) => {
 
 
 // Add or update a timetable for a section
-
 const upsertSectionTimetable = async (req, res) => {
   try {
     const { yearId, departmentId, sectionId } = req.params;
-    const { timetable } = req.body;
+    const timetable = req.body; // Now expecting an array directly
 
     console.log("Received yearId:", yearId);
 
-    const allYears = await Year.find().select("year");
-    console.log("Available years in DB:", allYears.map(y => y.year));
+    // Validate that the request body contains an array
+    if (!Array.isArray(timetable)) {
+      return res.status(400).json({ message: "Invalid timetable data, expected an array." });
+    }
 
     const yearData = await Year.findOne({ year: yearId });
     if (!yearData) return res.status(404).json({ message: "Year not found" });
@@ -170,13 +171,13 @@ const upsertSectionTimetable = async (req, res) => {
     const sectionData = deptData.sections.find(sec => sec.name === sectionId);
     if (!sectionData) return res.status(404).json({ message: "Section not found" });
 
-    // Ensure each period entry contains facultyName
+    // Ensure each period has a facultyName
     const validatedTimetable = timetable.map(day => ({
       day: day.day,
-      periods: day.periods.map(period => ({
+      periods: (day.periods || []).map(period => ({
         periodNumber: period.periodNumber,
         subject: period.subject,
-        facultyName: period.facultyName || "Unknown", // Default value if facultyName is missing
+        facultyName: period.facultyName || "Unknown" // Default faculty if missing
       })),
     }));
 
