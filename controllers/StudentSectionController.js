@@ -148,7 +148,7 @@ const addStudentsToSection = async (req, res) => {
 
 
 // Add or update a timetable for a section
-// Add or update timetable for a section
+
 const upsertSectionTimetable = async (req, res) => {
   try {
     const { yearId, departmentId, sectionId } = req.params;
@@ -170,7 +170,17 @@ const upsertSectionTimetable = async (req, res) => {
     const sectionData = deptData.sections.find(sec => sec.name === sectionId);
     if (!sectionData) return res.status(404).json({ message: "Section not found" });
 
-    sectionData.timetable = timetable;
+    // Ensure each period entry contains facultyName
+    const validatedTimetable = timetable.map(day => ({
+      day: day.day,
+      periods: day.periods.map(period => ({
+        periodNumber: period.periodNumber,
+        subject: period.subject,
+        facultyName: period.facultyName || "Unknown", // Default value if facultyName is missing
+      })),
+    }));
+
+    sectionData.timetable = validatedTimetable;
     await yearData.save();
 
     res.status(200).json({ message: "Timetable added/updated successfully", timetable: sectionData.timetable });
@@ -179,6 +189,8 @@ const upsertSectionTimetable = async (req, res) => {
     res.status(500).json({ message: "Error upserting timetable", error: error.message });
   }
 };
+
+
 // Add a new year
 const addYear = async (req, res) => {
   try {
