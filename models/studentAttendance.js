@@ -5,6 +5,7 @@ const AttendanceSchema = new mongoose.Schema({
   period: { type: Number, required: true }, // Single period field
   subject: { type: String, required: true },
   topic: { type: String, required: true },
+  facultyName: { type: String, required: false }, // Not required
   remarks: { type: String },
   year: { type: String, required: true },
   department: { type: String, required: true },
