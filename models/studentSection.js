@@ -17,7 +17,7 @@ const SectionTimetableSchema = new mongoose.Schema({
     {
       periodNumber: { type: Number, required: true },
       subject: { type: String, required: true },
-      facultyName: { type: String, required: true }, // Faculty name for the subject
+      facultyName: { type: String, required: false }, // Faculty name for the subject
     },
   ],
 });
