@@ -74,7 +74,8 @@ const getSubjectsByDate = async (req, res) => {
       .filter(period => period.periodNumber !== 4) // Exclude Lunch (12:40 - 1:20)
       .map(period => ({
         timing: periodTimings[period.periodNumber] || "Unknown",
-        subject: period.subject
+        subject: period.subject,
+        facultyName: period.facultyName || "Unknown" // Include facultyName
       }));
 
     res.status(200).json({
@@ -88,7 +89,6 @@ const getSubjectsByDate = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
 };
-
 
 // Add multiple students to a section
 const addStudentsToSection = async (req, res) => {
