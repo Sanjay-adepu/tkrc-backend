@@ -124,21 +124,22 @@ const getFacultyProfileByLoginId = async (req, res) => {
   }
 };
 
-
-
-
-
-
 const addFaculty = async (req, res) => {  
   try {
     const { 
       name, facultyId, role, department, subject, designation, password, 
-      timetable, qualification, experience, areaOfInterest, jntuId 
+      timetable, qualification, experience, areaOfInterest, jntuId, phoneNumber 
     } = req.body;
 
     if (!name || !facultyId || !role || !department || !subject || !designation || !password || 
-        !timetable || !qualification || !experience || !areaOfInterest || !jntuId) {
+        !timetable || !qualification || !experience || !areaOfInterest || !jntuId || !phoneNumber) {
       return res.status(400).json({ message: "All fields are required" });
+    }
+
+    // Validate phone number format (Optional, adjust regex based on your needs)
+    const phoneRegex = /^[0-9]{10}$/; // Example: Accepts a 10-digit number
+    if (!phoneRegex.test(phoneNumber)) {
+      return res.status(400).json({ message: "Invalid phone number format" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -157,8 +158,8 @@ const addFaculty = async (req, res) => {
     const newFaculty = new Faculty({
       name, facultyId, role, department, subject, designation, 
       password: hashedPassword, timetable: parsedTimetable, 
-      qualification, experience, areaOfInterest: areaOfInterest.split(","), jntuId,
-      image: imagePath,
+      qualification, experience, areaOfInterest: areaOfInterest.split(","), 
+      jntuId, phoneNumber, image: imagePath,
     });
 
     await newFaculty.save();
@@ -169,6 +170,8 @@ const addFaculty = async (req, res) => {
     res.status(500).json({ message: "Error adding faculty", error: error.message });
   }
 };
+
+
 const getFacultyUniqueCombinationsFor7Days = async (req, res) => {
   try {
     const { facultyId } = req.params;
