@@ -171,13 +171,14 @@ const upsertSectionTimetable = async (req, res) => {
     const sectionData = deptData.sections.find(sec => sec.name === sectionId);
     if (!sectionData) return res.status(404).json({ message: "Section not found" });
 
-    // Ensure each period has a facultyName
+    // Ensure each period has a facultyName and phoneNumber
     const validatedTimetable = timetable.map(day => ({
       day: day.day,
       periods: (day.periods || []).map(period => ({
         periodNumber: period.periodNumber,
         subject: period.subject,
-        facultyName: period.facultyName || "Unknown" // Default faculty if missing
+        facultyName: period.facultyName || "Unknown", // Default faculty if missing
+        phoneNumber: period.phoneNumber || "N/A", // Default phoneNumber if missing
       })),
     }));
 
@@ -190,7 +191,6 @@ const upsertSectionTimetable = async (req, res) => {
     res.status(500).json({ message: "Error upserting timetable", error: error.message });
   }
 };
-
 
 // Add a new year
 const addYear = async (req, res) => {
