@@ -28,6 +28,7 @@ const FacultySchema = new mongoose.Schema(
     password: { type: String, required: true },
     timetable: [TimetableSchema],
     image: { type: String },
+    phoneNumber: { type: String, required: true, unique: true }, // Added phoneNumber field
   },
   {
     timestamps: true,
