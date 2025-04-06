@@ -70,9 +70,6 @@ const moment = require("moment");
 };
              
 
-
-
-
 const getSectionAttendanceSummaryForAllDates = async (req, res) => {
   try {
     const { year, department, section, date } = req.query;
@@ -92,11 +89,21 @@ const getSectionAttendanceSummaryForAllDates = async (req, res) => {
     const attendanceSummary = {};
 
     attendanceRecords.forEach((record) => {
-      const { period, subject, attendance } = record;
+      const {
+        period,
+        subject,
+        attendance,
+        facultyName,
+        phoneNumber
+      } = record;
+
       const periodKey = `Period ${period} - ${subject || "N/A"}`;
 
       if (!attendanceSummary[periodKey]) {
         attendanceSummary[periodKey] = {
+          subject,
+          facultyName,
+          phoneNumber,
           presentCount: 0,
           absentCount: 0,
           presentRollNumbers: [],
@@ -131,6 +138,9 @@ const getSectionAttendanceSummaryForAllDates = async (req, res) => {
     });
   }
 };
+
+
+
 
 const getStudentAttendanceWithSubjects = async (req, res) => {
     try {
