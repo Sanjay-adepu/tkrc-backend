@@ -7,8 +7,7 @@ const sendAbsentNotifications = require("./Twilio.js");
 
 // Import your route files
 const facultyroutes = require("./routes/FacultyRouter");
-const subjectsroutes = require("./routes/subjectsrouter");
-const studentrouter = require("./routes/studentsrouter");
+
 const AttendanceRoute = require("./routes/AttendanceRouter");
 const SectionRoute = require("./routes/StudentSectionRouter");
 
