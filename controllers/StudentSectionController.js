@@ -24,76 +24,74 @@ const getStudentsBySection = async (req, res) => {
 
 
 
-const getSubjectsByDate = async (req, res) => {  
-  try {  
-    const { yearId, departmentId, sectionId, date } = req.params;  
-  
-    // Validate the date format (YYYY-MM-DD)  
-    const targetDate = new Date(date);  
-    if (isNaN(targetDate.getTime())) {  
-      return res.status(400).json({ message: "Invalid date format. Please use YYYY-MM-DD." });  
-    }  
-  
-    // Determine the day of the week (e.g., "Monday")  
-    const dayOfWeek = targetDate.toLocaleDateString('en-US', { weekday: 'long' });  
-  
-    // Fetch the year document  
-    const yearData = await Year.findOne({ year: yearId });  
-    if (!yearData) return res.status(404).json({ message: "Year not found" });  
-  
-    // Find the department within the year  
-    const deptData = yearData.departments.find(dept => dept.name === departmentId);  
-    if (!deptData) return res.status(404).json({ message: "Department not found" });  
-  
-    // Find the section within the department  
-    const sectionData = deptData.sections.find(sec => sec.name === sectionId);  
-    if (!sectionData) return res.status(404).json({ message: "Section not found" });  
-  
-    // Ensure the section has a timetable  
-    if (!sectionData.timetable || sectionData.timetable.length === 0) {  
-      return res.status(404).json({ message: "Timetable not found for this section" });  
-    }  
-  
-    // Find the schedule for the specified day  
-    const daySchedule = sectionData.timetable.find(schedule => schedule.day === dayOfWeek);  
-    if (!daySchedule) {  
-      return res.status(404).json({ message: `No timetable found for ${dayOfWeek}` });  
-    }  
-  
-    // Period Timings (Excluding Lunch Break)  
-    const periodTimings = {  
-      1: "9:40 - 10:40",  
-      2: "10:40 - 11:40",  
-      3: "11:40 - 12:40",  
-      4: "12:40 - 1:20", // Lunch Break (Excluded)  
-      5: "1:20 - 2:20",  
-      6: "2:20 - 3:20",  
-      7: "3:20 - 4:20"  
-    };  
-  
-    // Respond with the subjects scheduled for the day (excluding lunch period)  
-    const periods = daySchedule.periods  
-      .filter(period => period.periodNumber !== 4) // Exclude Lunch (12:40 - 1:20)  
-      .map(period => ({  
-        timing: periodTimings[period.periodNumber] || "Unknown",  
-        subject: period.subject,  
-        facultyName: period.facultyName || "Unknown" // Include facultyName  
-      }));  
-  
-    res.status(200).json({  
-      success: true,  
-      date,  
-      day: dayOfWeek,  
-      periods  
-    });  
-  } catch (error) {  
-    console.error("Error fetching subjects by date:", error.message);  
-    res.status(500).json({ message: "Internal Server Error", error: error.message });  
-  }  
-};  
-  
-  
+const getSubjectsByDate = async (req, res) => {
+  try {
+    const { yearId, departmentId, sectionId, date } = req.params;
 
+    // Validate the date format (YYYY-MM-DD)
+    const targetDate = new Date(date);
+    if (isNaN(targetDate.getTime())) {
+      return res.status(400).json({ message: "Invalid date format. Please use YYYY-MM-DD." });
+    }
+
+    // Determine the day of the week (e.g., "Monday")
+    const dayOfWeek = targetDate.toLocaleDateString('en-US', { weekday: 'long' });
+
+    // Fetch the year document
+    const yearData = await Year.findOne({ year: yearId });
+    if (!yearData) return res.status(404).json({ message: "Year not found" });
+
+    // Find the department within the year
+    const deptData = yearData.departments.find(dept => dept.name === departmentId);
+    if (!deptData) return res.status(404).json({ message: "Department not found" });
+
+    // Find the section within the department
+    const sectionData = deptData.sections.find(sec => sec.name === sectionId);
+    if (!sectionData) return res.status(404).json({ message: "Section not found" });
+
+    // Ensure the section has a timetable
+    if (!sectionData.timetable || sectionData.timetable.length === 0) {
+      return res.status(404).json({ message: "Timetable not found for this section" });
+    }
+
+    // Find the schedule for the specified day
+    const daySchedule = sectionData.timetable.find(schedule => schedule.day === dayOfWeek);
+    if (!daySchedule) {
+      return res.status(404).json({ message: `No timetable found for ${dayOfWeek}` });
+    }
+
+    // Period Timings (Excluding Lunch Break)
+    const periodTimings = {
+      1: "9:40 - 10:40",
+      2: "10:40 - 11:40",
+      3: "11:40 - 12:40",
+      4: "12:40 - 1:20", // Lunch Break (Excluded)
+      5: "1:20 - 2:20",
+      6: "2:20 - 3:20",
+      7: "3:20 - 4:20"
+    };
+
+    // Respond with the subjects scheduled for the day (excluding lunch period)
+    const periods = daySchedule.periods
+      .filter(period => period.periodNumber !== 4) // Exclude Lunch
+      .map(period => ({
+        timing: periodTimings[period.periodNumber] || "Unknown",
+        subject: period.subject,
+        facultyName: period.facultyName || "Unknown",
+        phoneNumber: period.phoneNumber || "N/A"
+      }));
+
+    res.status(200).json({
+      success: true,
+      date,
+      day: dayOfWeek,
+      periods
+    });
+  } catch (error) {
+    console.error("Error fetching subjects by date:", error.message);
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+};
 
 
 
