@@ -44,8 +44,7 @@ mongoose
 
 // Define API routes
 app.use("/faculty", facultyroutes);
-app.use("/subjects", subjectsroutes);
-app.use("/students", studentrouter);
+
 app.use("/Attendance", AttendanceRoute);
 app.use("/Section", SectionRoute);
 
