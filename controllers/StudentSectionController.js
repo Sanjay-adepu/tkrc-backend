@@ -22,6 +22,8 @@ const getStudentsBySection = async (req, res) => {
   }
 };
 
+
+
 const getSubjectsByDate = async (req, res) => {
   try {
     const { yearId, departmentId, sectionId, date } = req.params;
@@ -71,11 +73,12 @@ const getSubjectsByDate = async (req, res) => {
 
     // Respond with the subjects scheduled for the day (excluding lunch period)
     const periods = daySchedule.periods
-      .filter(period => period.periodNumber !== 4) // Exclude Lunch (12:40 - 1:20)
+      .filter(period => period.periodNumber !== 4) // Exclude Lunch
       .map(period => ({
         timing: periodTimings[period.periodNumber] || "Unknown",
         subject: period.subject,
-        facultyName: period.facultyName || "Unknown" // Include facultyName
+        facultyName: period.facultyName || "Unknown",
+        phoneNumber: period.phoneNumber || "N/A"
       }));
 
     res.status(200).json({
@@ -89,6 +92,11 @@ const getSubjectsByDate = async (req, res) => {
     res.status(500).json({ message: "Internal Server Error", error: error.message });
   }
 };
+
+
+
+
+
 
 // Add multiple students to a section
 const addStudentsToSection = async (req, res) => {
