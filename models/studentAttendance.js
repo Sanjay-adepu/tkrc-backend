@@ -6,6 +6,10 @@ const AttendanceSchema = new mongoose.Schema({
   subject: { type: String, required: true },
   topic: { type: String, required: true },
   facultyName: { type: String, required: false }, // Not required
+
+phoneNumber: { type: String ,required: false},
+
+
   remarks: { type: String },
   year: { type: String, required: true },
   department: { type: String, required: true },
