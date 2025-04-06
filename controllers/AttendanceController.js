@@ -277,6 +277,7 @@ const markAttendance = async (req, res) => {
       department,
       section,
       attendance,
+phoneNumber,
       facultyName, // Automatically set faculty name
       editing,
     } = req.body;
@@ -328,7 +329,8 @@ const markAttendance = async (req, res) => {
         existingAttendance.subject = subject;
         existingAttendance.topic = topic;
         existingAttendance.remarks = remarks;
-        existingAttendance.facultyName = facultyName || existingAttendance.facultyName; // Preserve existing faculty name
+      existingAttendance.facultyName = facultyName || existingAttendance.facultyName;
+existingAttendance.phoneNumber = phoneNumber || existingAttendance.phoneNumber;
         existingAttendance.attendance = formattedAttendance;
 
         const updatedAttendance = await existingAttendance.save();
@@ -340,9 +342,11 @@ const markAttendance = async (req, res) => {
           subject,
           topic,
           remarks,
-          facultyName, // Auto-set faculty name
+          facultyName, 
+            phoneNumber,
           year,
           department,
+         
           section,
           attendance: formattedAttendance,
         });
