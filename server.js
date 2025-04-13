@@ -3,6 +3,9 @@ const mongoose = require("mongoose");
 const cors = require("cors");
 const path = require("path");
 const sendAbsentNotifications = require("./Twilio.js");
+const multer = require('multer');
+const cloudinary = require('./cloudinary'); // your config file
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
 
 // Import your route files
@@ -35,6 +38,41 @@ app.use(
   },
   express.static(path.join(__dirname, "uploads"))
 );
+
+
+
+// Set up Cloudinary storage using multer-storage-cloudinary
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'uploads', // Folder name in Cloudinary
+    allowed_formats: ['jpg', 'png', 'jpeg'],
+  },
+});
+
+const upload = multer({ storage: storage });
+
+// Endpoint to upload an image
+app.post('/upload', upload.single('image'), (req, res) => {
+  if (!req.file || !req.file.path) {
+    return res.status(400).json({ error: 'Image upload failed' });
+  }
+
+  res.json({
+    message: 'Image uploaded successfully',
+    url: req.file.path,
+  });
+});
+
+
+
+
+
+
+
+
+
+
 
 // MongoDB connection
 mongoose
