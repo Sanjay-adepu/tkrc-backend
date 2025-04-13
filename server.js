@@ -114,29 +114,26 @@ app.use((err, req, res, next) => {
 });
 
 
-// GET all images
+// Get all uploaded images
 app.get('/images', async (req, res) => {
   try {
-    const result = await cloudinary.api.resources({
-      type: 'upload',
-      prefix: 'uploads/', // Only fetch images from 'uploads/' folder
-      resource_type: 'image',
-    });
+    const result = await cloudinary.search
+      .expression('folder:uploads')
+      .sort_by('created_at', 'desc')
+      .max_results(30) // Change as needed
+      .execute();
 
-    const urls = result.resources.map(img => ({
-      url: img.secure_url,
-      public_id: img.public_id,
-      created_at: img.created_at,
+    const images = result.resources.map(file => ({
+      url: file.secure_url,
+      public_id: file.public_id,
     }));
 
-    res.json(urls);
+    res.json(images);
   } catch (error) {
-    console.error(error);
+    console.error('Error fetching images:', error);
     res.status(500).json({ error: 'Failed to fetch images' });
   }
 });
-
-
 
 
 
