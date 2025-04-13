@@ -113,6 +113,34 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: "Internal server error" });
 });
 
+
+// GET all images
+app.get('/images', async (req, res) => {
+  try {
+    const result = await cloudinary.api.resources({
+      type: 'upload',
+      prefix: 'uploads/', // Only fetch images from 'uploads/' folder
+      resource_type: 'image',
+    });
+
+    const urls = result.resources.map(img => ({
+      url: img.secure_url,
+      public_id: img.public_id,
+      created_at: img.created_at,
+    }));
+
+    res.json(urls);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to fetch images' });
+  }
+});
+
+
+
+
+
+
 // Start the server
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
