@@ -4,7 +4,7 @@ const cors = require("cors");
 const path = require("path");
 const sendAbsentNotifications = require("./Twilio.js");
 const multer = require('multer');
-const cloudinary = require('./cloudinaryConfig'); // your config file
+const cloudinary = require('./cloudnaryConfig.js'); // your config file
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
  
 
