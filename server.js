@@ -45,25 +45,25 @@ app.use(
 const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
-    folder: 'uploads', // Folder name in Cloudinary
-    allowed_formats: ['jpg', 'png', 'jpeg'],
+    folder: 'uploads', // Cloudinary folder
+    resource_type: 'auto', // Very important for videos
+    allowed_formats: ['jpg', 'png', 'jpeg', 'mp4'], // Add mp4 support
   },
 });
 
 const upload = multer({ storage: storage });
 
-// Endpoint to upload an image
-app.post('/upload', upload.single('image'), (req, res) => {
+// Endpoint to upload a file (image or video)
+app.post('/upload', upload.single('file'), (req, res) => {
   if (!req.file || !req.file.path) {
-    return res.status(400).json({ error: 'Image upload failed' });
+    return res.status(400).json({ error: 'File upload failed' });
   }
 
   res.json({
-    message: 'Image uploaded successfully',
+    message: 'File uploaded successfully',
     url: req.file.path,
   });
 });
-
 
 
 
