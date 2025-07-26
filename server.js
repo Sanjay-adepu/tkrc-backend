@@ -47,7 +47,7 @@ const storage = new CloudinaryStorage({
   params: {
     folder: 'uploads', // Cloudinary folder
     resource_type: 'auto', // Very important for videos
-    allowed_formats: ['jpg', 'png', 'jpeg', 'mp4'], // Add mp4 support
+    allowed_formats: ['jpg', 'png', 'jpeg', 'mp4','webp'], // Add mp4 support
   },
 });
 
